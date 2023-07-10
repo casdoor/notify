@@ -1,85 +1,120 @@
 package telegram
 
 import (
-	"context"
+	"strings"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	"github.com/pkg/errors"
+	telegram "github.com/go-telegram-bot-api/telegram-bot-api"
+
+	"github.com/nikoksr/notify/v2"
 )
+
+var _ notify.Service = (*Service)(nil)
 
 const (
-	ModeMarkdown = tgbotapi.ModeMarkdown
-	ModeHTML     = tgbotapi.ModeHTML
+	// ModeHTML is the default mode for sending messages.
+	ModeHTML = telegram.ModeHTML
+	// ModeMarkdown is the markdown mode for sending messages.
+	ModeMarkdown = telegram.ModeMarkdown
 )
 
-var parseMode = ModeHTML // HTML is the default mode.
+func defaultMessageRenderer(conf SendConfig) string {
+	var builder strings.Builder
 
-// Telegram struct holds necessary data to communicate with the Telegram API.
-type Telegram struct {
-	client  *tgbotapi.BotAPI
-	chatIDs []int64
+	builder.WriteString(conf.subject)
+	builder.WriteString("\n\n")
+	builder.WriteString(conf.message)
+
+	return builder.String()
 }
 
-// New returns a new instance of a Telegram notification service.
-// For more information about telegram api token:
-//
-//	-> https://pkg.go.dev/github.com/go-telegram-bot-api/telegram-bot-api#NewBotAPI
-func New(apiToken string) (*Telegram, error) {
-	client, err := tgbotapi.NewBotAPI(apiToken)
+// Service is the telegram service. It is used to send messages to Telegram chats.
+type Service struct {
+	client        *telegram.BotAPI
+	chatIDs       []int64
+	name          string
+	renderMessage func(conf SendConfig) string
+
+	// Send option fields
+	parseMode string
+}
+
+// New creates a new telegram service. It returns an error if the telegram client could not be created.
+func New(token string, opts ...Option) (*Service, error) {
+	client, err := telegram.NewBotAPI(token)
 	if err != nil {
 		return nil, err
 	}
 
-	t := &Telegram{
-		client:  client,
-		chatIDs: []int64{},
+	s := &Service{
+		client:        client,
+		name:          "telegram",
+		renderMessage: defaultMessageRenderer,
+		parseMode:     ModeMarkdown,
 	}
 
-	return t, nil
-}
-
-// SetClient set a new custom BotAPI instance.
-// For example allowing you to use NewBotAPIWithClient:
-//
-//	-> https://pkg.go.dev/github.com/go-telegram-bot-api/telegram-bot-api#NewBotAPIWithClient
-func (t *Telegram) SetClient(client *tgbotapi.BotAPI) {
-	t.client = client
-}
-
-// SetParseMode sets the parse mode for the message body.
-// For more information about telegram constants:
-//
-//	-> https://pkg.go.dev/github.com/go-telegram-bot-api/telegram-bot-api#pkg-constants
-func (t *Telegram) SetParseMode(mode string) {
-	parseMode = mode
-}
-
-// AddReceivers takes Telegram chat IDs and adds them to the internal chat ID list. The Send method will send
-// a given message to all those chats.
-func (t *Telegram) AddReceivers(chatIDs ...int64) {
-	t.chatIDs = append(t.chatIDs, chatIDs...)
-}
-
-// Send takes a message subject and a message body and sends them to all previously set chats. Message body supports
-// html as markup language.
-func (t Telegram) Send(ctx context.Context, subject, message string) error {
-	fullMessage := subject + "\n" + message // Treating subject as message title
-
-	msg := tgbotapi.NewMessage(0, fullMessage)
-	msg.ParseMode = parseMode
-
-	for _, chatID := range t.chatIDs {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-			msg.ChatID = chatID
-			_, err := t.client.Send(msg)
-			if err != nil {
-				return errors.Wrapf(err, "failed to send message to Telegram chat '%d'", chatID)
-			}
-		}
+	for _, opt := range opts {
+		opt(s)
 	}
 
-	return nil
+	return s, nil
+}
+
+// Name returns the name of the service.
+func (s *Service) Name() string {
+	return s.name
+}
+
+// AddReceivers adds chat IDs that should receive messages.
+func (s *Service) AddReceivers(chatIDs ...int64) {
+	s.chatIDs = append(s.chatIDs, chatIDs...)
+}
+
+// Option is a function that can be used to configure the telegram service.
+type Option = func(*Service)
+
+// WithClient sets the telegram client. This is useful if you want to use a custom client.
+func WithClient(client *telegram.BotAPI) Option {
+	return func(t *Service) {
+		t.client = client
+	}
+}
+
+// WithReceivers sets the chat IDs that should receive messages. You can add more chat IDs by calling AddReceivers.
+func WithReceivers(chatIDs ...int64) Option {
+	return func(t *Service) {
+		t.chatIDs = chatIDs
+	}
+}
+
+// WithName sets the name of the service. The default name is "telegram".
+func WithName(name string) Option {
+	return func(t *Service) {
+		t.name = name
+	}
+}
+
+// WithMessageRenderer sets the message renderer. The default function will put the subject and message on separate lines.
+//
+// Example:
+//
+//	telegram.WithMessageRenderer(func(conf SendConfig) string {
+//		var builder strings.Builder
+//
+//		builder.WriteString(conf.subject)
+//		builder.WriteString("\n")
+//		builder.WriteString(conf.message)
+//
+//		return builder.String()
+//	})
+func WithMessageRenderer(builder func(conf SendConfig) string) Option {
+	return func(t *Service) {
+		t.renderMessage = builder
+	}
+}
+
+// WithParseMode sets the parse mode for sending messages. The default is ModeHTML.
+func WithParseMode(mode string) Option {
+	return func(t *Service) {
+		t.parseMode = mode
+	}
 }

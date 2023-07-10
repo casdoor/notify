@@ -5,7 +5,7 @@
     alt="notify logo"
 />
 
-[![codecov](https://codecov.io/gh/nikoksr/notify/branch/main/graph/badge.svg?token=QDON0KO2WV)](https://codecov.io/gh/nikoksr/notify)
+[![codecov](https://codecov.io/gh/nikoksr/notify/branch/v2/graph/badge.svg?token=QDON0KO2WV)](https://codecov.io/gh/nikoksr/notify)
 [![Go Report Card](https://goreportcard.com/badge/github.com/nikoksr/notify)](https://goreportcard.com/report/github.com/nikoksr/notify)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/37fdff3c275c4a72a3a061f2d0ec5553)](https://www.codacy.com/gh/nikoksr/notify/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=nikoksr/notify&amp;utm_campaign=Badge_Grade)
 [![Maintainability](https://api.codeclimate.com/v1/badges/b3afd7bf115341995077/maintainability)](https://codeclimate.com/github/nikoksr/notify/maintainability)
@@ -17,55 +17,120 @@
 
 <h1></h1>
 
+## Notify v2 <a id="v2"></a>
+
+This is the home branch of Notify `v2`. It is currently in active development and not yet ready for production use. The [main branch](https://github.com/nikoksr/notify/tree/main) will stay the default branch until `v2` is ready for production use. At this point, the main branch will be renamed to `v1` and the `v2` branch will be merged into the main branch.
+
+Notify `v2` lets you enjoy the simplicity of Notify `v1` with more power and flexibility at your hands. Providing a simple interface that lets you send attachments, define custom message renderers and dynamic message enrichment.
+
 ## About <a id="about"></a>
 
 *Notify* was born out of my own need to have my API servers running in production be able to notify me when critical errors occur. Of course, _Notify_ can be used for any other purpose as well. The library is kept as simple as possible for quick integration and ease of use.
 
 ## Disclaimer <a id="disclaimer"></a>
 
-Any misuse of this library is your own liability and responsibility and cannot be attributed to the authors of this library.  See [license](LICENSE) for more.
+Usage of this library should comply with the stated rules and the terms present in the [license](LICENSE) and [code of conduct](CODE_OF_CONDUCT.md). Failure to comply, including but not limited to misuse or spamming, can result in permanent banning from all supported platforms as governed by the respective platform's rules and regulations.
 
-Spamming through the use of this library **may get you permanently banned** on most supported platforms.
+Notify's functionality is determined by the consistency of the supported external services and their corresponding latest client libraries; it may change without notice. This fact, coupled with the inevitable inconsistencies that can arise, dictates that Notify should not be used in situations where its failure or inconsistency could result in significant damage, loss, or disruption. Always have a backup plan and only use Notify after understanding and accepting these conditions.
 
-Since Notify is highly dependent on the consistency of the supported external services and the corresponding latest client libraries, we cannot guarantee its reliability nor its consistency, and therefore you should probably not use or rely on Notify in critical scenarios.
+Please read the [license](LICENSE) for a complete understanding of the permissions, conditions, and limitations of use.
 
 ## Install <a id="install"></a>
 
 ```sh
-go get -u github.com/nikoksr/notify
+go get -u github.com/nikoksr/notify/v2
 ```
 
 ## Example usage <a id="usage"></a>
 
+You can use Notify just like you're used to from `v1`. A simple example in which we send a notification to a Telegram
+channel could look like this:
+
 ```go
-// Create a telegram service. Ignoring error for demo simplicity.
-telegramService, _ := telegram.New("your_telegram_api_token")
 
-// Passing a telegram chat id as receiver for our messages.
-// Basically where should our message be sent?
-telegramService.AddReceivers(-1234567890)
+func main() {
+    // Create a new telegram service. We're using the new constructor option WithReceivers() to specify the receivers. We can,
+    // however, also rely on the old way of doing things and add the receivers to the service later on using the AddReceivers()
+    // method.
+    svc, _ := telegram.New(
+        token,
+        telegram.WithReceivers(receiver),
+    )
 
-// Tell our notifier to use the telegram service. You can repeat the above process
-// for as many services as you like and just tell the notifier to use them.
-// Inspired by http middlewares used in higher level libraries.
-notify.UseServices(telegramService)
+	// Create the actual notify instance and pass the telegram service to it. Again, we're making use of the new constructor
+	// option WithServices() to specify the services. UseServices() is still available and can be used to add services later
+	// on.
+    n := notify.New(
+        notify.WithServices(svc),
+    )
 
-// Send a test message.
-_ = notify.Send(
-	context.Background(),
-	"Subject/Title",
-	"The actual message - Hello, you awesome gophers! :)",
-)
+	// Send a notification
+    _ = n.Send(context.Background(),
+        "Subject/Title",
+        "The actual message - Hello, you awesome gophers! :)",
+    )
+}
 ```
 
-#### Recommendation <a id="recommendation"></a>
+We touched a little bit on what's new in `v2` in the example above. Let's take a deeper dive into the new, more advanced
+features.
 
-In this example, we use the global `Send()` function. Similar to most logging libraries such as
-[zap](https://github.com/uber-go/zap), we provide global functions for convenience. However, as with most logging
-libraries, we also recommend avoiding the use of global functions as much as possible. Instead, use one of our versatile
-constructor functions to create a new local `Notify` instance and pass it down the stream.
+In this example, we're going to send a notification to a Discord channel. We're going to make use of the new
+`discord.Webhook` service, which allows us to send notifications to Discord webhooks. We're also going to define a custom
+message renderer, which allows us to define how the message should look like. Lastly, we're going to send a couple of
+attachments and metadata along with the notification.
 
-Read the [library docs](https://pkg.go.dev/github.com/nikoksr/notify#section-documentation) for more information.
+```go
+func main() {
+    // Create a new discord webhook service.
+    svc, _ := discord.NewWebhook(
+        discord.WithReceivers(webhookURL),
+        discord.WithMessageRenderer(customRenderer),
+    )
+
+	// Open a couple of files to send as attachments.
+    img, _ := os.Open("/path/to/image.png")
+	defer img.Close()
+
+    txt, _ := os.Open("/path/to/text.txt")
+	defer txt.Close()
+
+	// Create some example metadata that we make use of in our custom renderer.
+    exampleMetadata := map[string]interface{}{
+        "foo":  "bar",
+    }
+
+	// Send a notification with the attachments and metadata. In this case, we're using the service directly.
+    _ = svc.Send(ctx,
+        "[Test] Notify v2",
+        "Hello, you awesome gophers! :)",
+        notify.SendWithAttachments(img, txt),
+        notify.SendWithMetadata(exampleMetadata),
+    )
+}
+
+
+// The custom renderer allows us to define how the message should look like. The respective SendConfig is passed to the
+// renderer, which contains all the information we need to render the message.
+func customRenderer(conf discord.SendConfig) string {
+    var builder strings.Builder
+
+	// For demo purposes, we're just going to marshal the metadata to human-readable JSON and add it to the message.
+    metadata, _ := json.MarshalIndent(conf.Metadata(), "", "  ")
+
+	// Put together the message.
+    builder.WriteString(conf.Subject())
+    builder.WriteString("\n\n")
+    builder.WriteString(conf.Message())
+    builder.WriteString("\n\n")
+	builder.WriteString("Metadata:\n")
+	builder.WriteString(string(metadata))
+	builder.WriteString("\n\n")
+    builder.WriteString("<-- A super necessary footer -->\n")
+
+    return builder.String()
+}
+```
 
 ## Contributing <a id="contributing"></a>
 
@@ -77,39 +142,10 @@ Yes, please! Contributions of all kinds are very welcome! Feel free to check our
 
 > Click [here](https://github.com/nikoksr/notify/issues/new?assignees=&labels=affects%2Fservices%2C+good+first+issue%2C+hacktoberfest%2C+help+wanted%2C+type%2Fenhancement%2C+up+for+grabs&template=service-request.md&title=feat%28service%29%3A+Add+%5BSERVICE+NAME%5D+service) to request a missing service.
 
-| Service                                                                           | Path                                     | Credits                                                                                         |       Status       |
-|-----------------------------------------------------------------------------------|------------------------------------------|-------------------------------------------------------------------------------------------------|:------------------:|
-| [Amazon SES](https://aws.amazon.com/ses)                                          | [service/amazonses](service/amazonses)   | [aws/aws-sdk-go-v2](https://github.com/aws/aws-sdk-go-v2)                                       | :heavy_check_mark: |
-| [Amazon SNS](https://aws.amazon.com/sns)                                          | [service/amazonsns](service/amazonsns)   | [aws/aws-sdk-go-v2](https://github.com/aws/aws-sdk-go-v2)                                       | :heavy_check_mark: |
-| [Bark](https://apps.apple.com/us/app/bark-customed-notifications/id1403753865)    | [service/bark](service/bark)             | -                                                                                               | :heavy_check_mark: |
-| [DingTalk](https://www.dingtalk.com)                                              | [service/dinding](service/dingding)      | [blinkbean/dingtalk](https://github.com/blinkbean/dingtalk)                                     | :heavy_check_mark: |
-| [Discord](https://discord.com)                                                    | [service/discord](service/discord)       | [bwmarrin/discordgo](https://github.com/bwmarrin/discordgo)                                     | :heavy_check_mark: |
-| [Email](https://wikipedia.org/wiki/Email)                                         | [service/mail](service/mail)             | [jordan-wright/email](https://github.com/jordan-wright/email)                                   | :heavy_check_mark: |
-| [Firebase Cloud Messaging](https://firebase.google.com/docs/cloud-messaging)      | [service/fcm](service/fcm)               | [appleboy/go-fcm](https://github.com/appleboy/go-fcm)                                           | :heavy_check_mark: |
- | [Google Chat](https://workspace.google.com/intl/en/products/chat/)                | [service/googlechat](service/googlechat) | [googleapis/google-api-go-client](https://google.golang.org/api/chat/v1)                        | :heavy_check_mark: |
-| [HTTP](https://wikipedia.org/wiki/Hypertext_Transfer_Protocol)                    | [service/http](service/http)             | -                                                                                               | :heavy_check_mark: |
-| [Lark](https://www.larksuite.com/)                                                | [service/lark](service/lark)             | [go-lark/lark](https://github.com/go-lark/lark)                                                 | :heavy_check_mark: |
-| [Line](https://line.me)                                                           | [service/line](service/line)             | [line/line-bot-sdk-go](https://github.com/line/line-bot-sdk-go)                                 | :heavy_check_mark: |
-| [Line Notify](https://notify-bot.line.me)                                         | [service/line](service/line)             | [utahta/go-linenotify](https://github.com/utahta/go-linenotify)                                 | :heavy_check_mark: |
-| [Mailgun](https://www.mailgun.com)                                                | [service/mailgun](service/mailgun)       | [mailgun/mailgun-go](https://github.com/mailgun/mailgun-go)                                     | :heavy_check_mark: |
-| [Matrix](https://www.matrix.org)                                                  | [service/matrix](service/matrix)         | [mautrix/go](https://github.com/mautrix/go)                                                     | :heavy_check_mark: |
-| [Microsoft Teams](https://www.microsoft.com/microsoft-teams)                      | [service/msteams](service/msteams)       | [atc0005/go-teams-notify](https://github.com/atc0005/go-teams-notify)                           | :heavy_check_mark: |
-| [Plivo](https://www.plivo.com)                                                    | [service/plivo](service/plivo)           | [plivo/plivo-go](https://github.com/plivo/plivo-go)                                             | :heavy_check_mark: |
-| [Pushover](https://pushover.net/)                                                 | [service/pushover](service/pushover)     | [gregdel/pushover](https://github.com/gregdel/pushover)                                         | :heavy_check_mark: |
-| [Pushbullet](https://www.pushbullet.com)                                          | [service/pushbullet](service/pushbullet) | [cschomburg/go-pushbullet](https://github.com/cschomburg/go-pushbullet)                         | :heavy_check_mark: |
-| [Reddit](https://www.reddit.com)                                                  | [service/reddit](service/reddit)         | [vartanbeno/go-reddit](https://github.com/vartanbeno/go-reddit)                                 | :heavy_check_mark: |
-| [RocketChat](https://rocket.chat)                                                 | [service/rocketchat](service/rocketchat) | [RocketChat/Rocket.Chat.Go.SDK](https://github.com/RocketChat/Rocket.Chat.Go.SDK)               | :heavy_check_mark: |
-| [SendGrid](https://sendgrid.com)                                                  | [service/sendgrid](service/sendgrid)     | [sendgrid/sendgrid-go](https://github.com/sendgrid/sendgrid-go)                                 | :heavy_check_mark: |
-| [Slack](https://slack.com)                                                        | [service/slack](service/slack)           | [slack-go/slack](https://github.com/slack-go/slack)                                             | :heavy_check_mark: |
-| [Syslog](https://wikipedia.org/wiki/Syslog)                                       | [service/syslog](service/syslog)         | [log/syslog](https://pkg.go.dev/log/syslog)                                                     | :heavy_check_mark: |
-| [Telegram](https://telegram.org)                                                  | [service/telegram](service/telegram)     | [go-telegram-bot-api/telegram-bot-api](https://github.com/go-telegram-bot-api/telegram-bot-api) | :heavy_check_mark: |
-| [TextMagic](https://www.textmagic.com)                                            | [service/textmagic](service/textmagic)   | [textmagic/textmagic-rest-go-v2](https://github.com/textmagic/textmagic-rest-go-v2)             | :heavy_check_mark: |
-| [Twilio](https://www.twilio.com/)                                                 | [service/twilio](service/twilio)         | [kevinburke/twilio-go](https://github.com/kevinburke/twilio-go)                                 | :heavy_check_mark: |
-| [Twitter](https://twitter.com)                                                    | [service/twitter](service/twitter)       | [drswork/go-twitter](https://github.com/drswork/go-twitter)                                     | :heavy_check_mark: |
-| [Viber](https://www.viber.com)                                                    | [service/viber](service/viber)           | [mileusna/viber](https://github.com/mileusna/viber)                                             | :heavy_check_mark: |
-| [WeChat](https://www.wechat.com)                                                  | [service/wechat](service/wechat)         | [silenceper/wechat](https://github.com/silenceper/wechat)                                       | :heavy_check_mark: |
-| [Webpush Notification](https://developer.mozilla.org/en-US/docs/Web/API/Push_API) | [service/webpush](service/webpush)       | [SherClockHolmes/webpush-go](https://github.com/SherClockHolmes/webpush-go/)                    | :heavy_check_mark: |
-| [WhatsApp](https://www.whatsapp.com)                                              | [service/whatsapp](service/whatsapp)     | [Rhymen/go-whatsapp](https://github.com/Rhymen/go-whatsapp)                                     |        :x:         |
+| Service                          | Path                                 | Credits                                                                                         |       Status       |
+|----------------------------------|--------------------------------------|-------------------------------------------------------------------------------------------------|:------------------:|
+| [Discord](https://discord.com)   | [service/discord](service/discord)   | [bwmarrin/discordgo](https://github.com/bwmarrin/discordgo)                                     | :heavy_check_mark: |
+| [Telegram](https://telegram.org) | [service/telegram](service/telegram) | [go-telegram-bot-api/telegram-bot-api](https://github.com/go-telegram-bot-api/telegram-bot-api) | :heavy_check_mark: |
 
 ## Special Thanks <a id="special_thanks"></a>
 

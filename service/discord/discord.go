@@ -1,97 +1,213 @@
 package discord
 
 import (
-	"context"
+	"fmt"
+	"net/url"
+	"strings"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/pkg/errors"
+
+	"github.com/nikoksr/notify/v2"
 )
 
-//go:generate mockery --name=discordSession --output=. --case=underscore --inpackage
-type discordSession interface {
-	ChannelMessageSend(channelID string, content string, options ...discordgo.RequestOption) (*discordgo.Message, error)
+var (
+	_ notify.Service = (*Service)(nil)
+	_ client         = (*authClient)(nil)
+	_ client         = (*webhookClient)(nil)
+)
+
+func defaultMessageRenderer(conf SendConfig) string {
+	var builder strings.Builder
+
+	builder.WriteString(conf.subject)
+	builder.WriteString("\n\n")
+	builder.WriteString(conf.message)
+
+	return builder.String()
 }
 
-// Compile-time check to ensure that discordgo.Session implements the discordSession interface.
-var _ discordSession = new(discordgo.Session)
-
-// Discord struct holds necessary data to communicate with the Discord API.
-type Discord struct {
-	client     discordSession
-	channelIDs []string
+type authClient struct {
+	session *discordgo.Session
 }
 
-// New returns a new instance of a Discord notification service.
-func New() *Discord {
-	return &Discord{
-		client:     &discordgo.Session{},
-		channelIDs: []string{},
+type webhookClient struct {
+	session *discordgo.Session
+}
+
+type client interface {
+	setSession(session *discordgo.Session)
+	sendTo(receiver string, conf SendConfig) error
+}
+
+func (c *authClient) setSession(session *discordgo.Session) {
+	c.session = session
+}
+
+func attachmentsToFiles(attachments []notify.Attachment) []*discordgo.File {
+	var files []*discordgo.File
+	for _, attachment := range attachments {
+		files = append(files, &discordgo.File{
+			Reader: attachment,
+			Name:   attachment.Name(),
+		})
 	}
+
+	return files
 }
 
-// authenticate will try and authenticate to discord.
-func (d *Discord) authenticate(token string) error {
-	client, err := discordgo.New(token)
+func (c *authClient) sendTo(receiver string, conf SendConfig) error {
+	// Convert notify.Attachment to discordgo.File.
+	files := attachmentsToFiles(conf.attachments)
+
+	// Send message and attachments.
+	_, err := c.session.ChannelMessageSendComplex(receiver, &discordgo.MessageSend{
+		Content: conf.message,
+		Files:   files,
+	})
+
+	return err
+}
+
+func (c *webhookClient) sendTo(receiver string, conf SendConfig) error {
+	// Parse the receiver string as a webhook URL.
+	// The format is: https://discord.com/api/webhooks/<webhook_id>/<webhook_token>
+	u, err := url.Parse(receiver)
 	if err != nil {
-		return err
+		return fmt.Errorf("invalid webhook URL: %w", err)
 	}
 
-	client.Identify.Intents = discordgo.IntentsGuildMessageTyping
+	// Get the webhook ID and token from the URL.
+	// The webhook ID is the second to last path segment.
+	// The webhook token is the last path segment.
+	segments := strings.Split(u.Path, "/")
+	webhookID := segments[len(segments)-2]
+	webhookToken := segments[len(segments)-1]
 
-	d.client = client
+	// Convert notify.Attachment to discordgo.File.
+	files := attachmentsToFiles(conf.attachments)
 
-	return nil
+	_, err = c.session.WebhookExecute(webhookID, webhookToken, false, &discordgo.WebhookParams{
+		Content: conf.message,
+		Files:   files,
+	})
+
+	return err
 }
 
-// AuthenticateWithBotToken authenticates you as a bot to Discord via the given access token.
-// For more info, see here: https://pkg.go.dev/github.com/bwmarrin/discordgo@v0.22.1#New
-func (d *Discord) AuthenticateWithBotToken(token string) error {
-	token = parseBotToken(token)
-
-	return d.authenticate(token)
+func (c *webhookClient) setSession(session *discordgo.Session) {
+	c.session = session
 }
 
-// AuthenticateWithOAuth2Token authenticates you to Discord via the given OAUTH2 token.
-// For more info, see here: https://pkg.go.dev/github.com/bwmarrin/discordgo@v0.22.1#New
-func (d *Discord) AuthenticateWithOAuth2Token(token string) error {
-	token = parseOAuthToken(token)
-
-	return d.authenticate(token)
+// Service struct holds necessary data to communicate with the Discord API.
+type Service struct {
+	client        client
+	receivers     []string
+	name          string
+	renderMessage func(conf SendConfig) string
 }
 
-// parseBotToken parses a regular token to a bot token that is understandable for discord.
-// For more info, see here: https://pkg.go.dev/github.com/bwmarrin/discordgo@v0.22.1#New
-func parseBotToken(token string) string {
-	return "Bot " + token
-}
-
-// parseBotToken parses a regular token to a OAUTH2 token that is understandable for discord.
-// For more info, see here: https://pkg.go.dev/github.com/bwmarrin/discordgo@v0.22.1#New
-func parseOAuthToken(token string) string {
-	return "Bearer " + token
-}
-
-// AddReceivers takes Discord channel IDs and adds them to the internal channel ID list. The Send method will send
-// a given message to all those channels.
-func (d *Discord) AddReceivers(channelIDs ...string) {
-	d.channelIDs = append(d.channelIDs, channelIDs...)
-}
-
-// Send takes a message subject and a message body and sends them to all previously set chats.
-func (d Discord) Send(ctx context.Context, subject, message string) error {
-	fullMessage := subject + "\n" + message // Treating subject as message title
-
-	for _, channelID := range d.channelIDs {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-			_, err := d.client.ChannelMessageSend(channelID, fullMessage)
-			if err != nil {
-				return errors.Wrapf(err, "failed to send message to Discord channel '%s'", channelID)
-			}
-		}
+func newService(client client, name string, opts ...Option) (*Service, error) {
+	svc := &Service{
+		client:        client,
+		name:          name,
+		renderMessage: defaultMessageRenderer,
 	}
 
-	return nil
+	for _, opt := range opts {
+		opt(svc)
+	}
+
+	return svc, nil
+}
+
+// New creates a new Discord service using an OAuth2 token for authentication.
+func New(token string, opts ...Option) (*Service, error) {
+	session, err := authenticateWithOAuth2Token(token)
+	if err != nil {
+		return nil, err
+	}
+
+	client := &authClient{session: session}
+
+	return newService(client, "discord", opts...)
+}
+
+// NewBot creates a new Discord bot service.
+func NewBot(token string, opts ...Option) (*Service, error) {
+	session, err := authenticateWithBotToken(token)
+	if err != nil {
+		return nil, err
+	}
+
+	client := &authClient{session: session}
+
+	return newService(client, "discord-bot", opts...)
+}
+
+// NewWebhook creates a new Discord webhook service. The receiver string must be a webhook URL.
+func NewWebhook(opts ...Option) (*Service, error) {
+	session, err := authenticate("") // Create an unauthenticated session.
+	if err != nil {
+		return nil, err
+	}
+
+	client := &webhookClient{session: session}
+
+	return newService(client, "discord-webhook", opts...)
+}
+
+// Name returns the name of the service.
+func (s *Service) Name() string {
+	return s.name
+}
+
+// AddReceivers takes Service channel IDs or webhook URLs and adds them to the list of receivers. You can add more
+// channel IDs or webhook URLs by calling AddReceivers again.
+func (s *Service) AddReceivers(receivers ...string) {
+	s.receivers = append(s.receivers, receivers...)
+}
+
+// Option is a function that applies an option to the service.
+type Option = func(*Service)
+
+// WithClient sets the discord client (session) to use for sending messages. Naming it WithClient to stay consistent
+// with the other services.
+func WithClient(session *discordgo.Session) Option {
+	return func(s *Service) {
+		s.client.setSession(session)
+	}
+}
+
+// WithReceivers sets the channel IDs or webhook URLs to send messages to. You can add more channel IDs or webhook URLs
+// by calling Service.AddReceivers.
+func WithReceivers(receivers ...string) Option {
+	return func(d *Service) {
+		d.receivers = receivers
+	}
+}
+
+// WithName sets the name of the service. The default is "discord".
+func WithName(name string) Option {
+	return func(d *Service) {
+		d.name = name
+	}
+}
+
+// WithMessageRenderer sets the message renderer. The default function will put the subject and message on separate lines.
+//
+// Example:
+//
+//	telegram.WithMessageRenderer(func(conf SendConfig) string {
+//		var builder strings.Builder
+//
+//		builder.WriteString(conf.subject)
+//		builder.WriteString("\n")
+//		builder.WriteString(conf.message)
+//
+//		return builder.String()
+//	})
+func WithMessageRenderer(builder func(conf SendConfig) string) Option {
+	return func(t *Service) {
+		t.renderMessage = builder
+	}
 }
