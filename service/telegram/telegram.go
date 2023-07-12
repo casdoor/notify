@@ -74,22 +74,22 @@ type Option = func(*Service)
 
 // WithClient sets the telegram client. This is useful if you want to use a custom client.
 func WithClient(client *telegram.BotAPI) Option {
-	return func(t *Service) {
-		t.client = client
+	return func(s *Service) {
+		s.client = client
 	}
 }
 
 // WithReceivers sets the chat IDs that should receive messages. You can add more chat IDs by calling AddReceivers.
 func WithReceivers(chatIDs ...int64) Option {
-	return func(t *Service) {
-		t.chatIDs = chatIDs
+	return func(s *Service) {
+		s.chatIDs = chatIDs
 	}
 }
 
 // WithName sets the name of the service. The default name is "telegram".
 func WithName(name string) Option {
-	return func(t *Service) {
-		t.name = name
+	return func(s *Service) {
+		s.name = name
 	}
 }
 
@@ -107,14 +107,14 @@ func WithName(name string) Option {
 //		return builder.String()
 //	})
 func WithMessageRenderer(builder func(conf SendConfig) string) Option {
-	return func(t *Service) {
-		t.renderMessage = builder
+	return func(s *Service) {
+		s.renderMessage = builder
 	}
 }
 
 // WithParseMode sets the parse mode for sending messages. The default is ModeHTML.
 func WithParseMode(mode string) Option {
-	return func(t *Service) {
-		t.parseMode = mode
+	return func(s *Service) {
+		s.parseMode = mode
 	}
 }
