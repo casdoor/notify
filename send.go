@@ -7,8 +7,9 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// send calls the underlying notification services to send the given subject and message to their respective endpoints.
-func (n *Notify) send(ctx context.Context, subject, message string, opts ...SendOption) error {
+// Send sends a notification with the given subject and message through all the services of n. It performs these
+// operations concurrently and returns the first encountered error, if any.
+func (n *Notify) Send(ctx context.Context, subject, message string, opts ...SendOption) error {
 	var eg errgroup.Group
 	for _, service := range n.services {
 		service := service
@@ -20,49 +21,39 @@ func (n *Notify) send(ctx context.Context, subject, message string, opts ...Send
 	return eg.Wait()
 }
 
-// Send calls the underlying notification services to send the given subject and message to their respective endpoints.
-func (n *Notify) Send(ctx context.Context, subject, message string, opts ...SendOption) error {
-	return n.send(ctx, subject, message, opts...)
-}
-
-// Send calls the underlying notification services to send the given subject and message to their respective endpoints.
+// Send sends a notification with the given subject and message through all the services of the defaultNotify instance.
+// It performs these operations concurrently and returns the first encountered error, if any.
 func Send(ctx context.Context, subject, message string, opts ...SendOption) error {
 	return defaultNotify.Send(ctx, subject, message, opts...)
 }
 
-// SendConfig is an interface that can be used to configure a Send call. It is intended to be implemented by the various
-// notification services and their respective SendConfig implementations.
+// SendConfig is used to configure the Send call.
 type SendConfig interface {
+	// SetAttachments sets attachments that can be sent alongside the message.
 	SetAttachments(attachments ...Attachment)
+	// SetMetadata sets additional metadata that can be sent with the message.
 	SetMetadata(metadata map[string]any)
 }
 
-// SendOption is a function that configures a Send call. More specifically, it configures the SendConfig instance that
-// is passed to the Send call.
+// SendOption is a function that modifies the configuration of a Send call.
 type SendOption = func(SendConfig)
 
-// Attachment is a type that can be used to attach a file to a notification message. It implements the io.Reader interface,
-// so it can be used to attach a file to a notification message. Name is used as the filename when the attachment is sent
-// to the notification service. Size is the size of the attachment in bytes, or -1 if the size is unknown.
+// Attachment represents a file that can be attached to a notification message.
 type Attachment interface {
+	// Reader is used to read the contents of the attachment.
 	io.Reader
+	// Name is used as the filename when sending the attachment.
 	Name() string
 }
 
-// SendWithAttachments is a SendOption that attaches the given attachments to the SendConfig instance. This is a so-
-// called shared SendOption, meaning that it is intended to be used by multiple notification services and is not specific
-// to a single service.
-// The Attachment type implements the io.Reader interface, so it can be used to attach a file to a notification message.
-// The name of the attachment is used as the filename when the attachment is sent to the notification service.
+// SendWithAttachments attaches the provided files to the message being sent.
 func SendWithAttachments(attachments ...Attachment) SendOption {
 	return func(c SendConfig) {
 		c.SetAttachments(attachments...)
 	}
 }
 
-// SendWithMetadata is a SendOption that attaches the given metadata to the SendConfig instance. This is a so-called
-// shared SendOption, meaning that it is intended to be used by multiple notification services and is not specific to a
-// single service.
+// SendWithMetadata attaches the provided metadata to the message being sent.
 func SendWithMetadata(metadata map[string]any) SendOption {
 	return func(c SendConfig) {
 		c.SetMetadata(metadata)
