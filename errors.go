@@ -18,7 +18,7 @@ type ErrSendNotification struct {
 
 // Error provides the string representation of the ErrSendNotification error.
 func (e *ErrSendNotification) Error() string {
-	return fmt.Sprintf("Failed to send notification to recipient: %v, cause: %v", e.RecipientID, e.Cause)
+	return fmt.Sprintf("Failed to send notification to recipient %v: %v", e.RecipientID, e.Cause)
 }
 
 // Unwrap retrieves the underlying error for the ErrSendNotification error.
