@@ -36,7 +36,7 @@ type webhookClient struct {
 
 type client interface {
 	setSession(session *discordgo.Session)
-	sendTo(receiver string, conf SendConfig) error
+	sendTo(recipient string, conf SendConfig) error
 }
 
 func (c *authClient) setSession(session *discordgo.Session) {
@@ -55,12 +55,12 @@ func attachmentsToFiles(attachments []notify.Attachment) []*discordgo.File {
 	return files
 }
 
-func (c *authClient) sendTo(receiver string, conf SendConfig) error {
+func (c *authClient) sendTo(recipient string, conf SendConfig) error {
 	// Convert notify.Attachment to discordgo.File.
 	files := attachmentsToFiles(conf.attachments)
 
 	// Send message and attachments.
-	_, err := c.session.ChannelMessageSendComplex(receiver, &discordgo.MessageSend{
+	_, err := c.session.ChannelMessageSendComplex(recipient, &discordgo.MessageSend{
 		Content: conf.message,
 		Files:   files,
 	})
@@ -68,10 +68,10 @@ func (c *authClient) sendTo(receiver string, conf SendConfig) error {
 	return err
 }
 
-func (c *webhookClient) sendTo(receiver string, conf SendConfig) error {
-	// Parse the receiver string as a webhook URL.
+func (c *webhookClient) sendTo(recipient string, conf SendConfig) error {
+	// Parse the recipient string as a webhook URL.
 	// The format is: https://discord.com/api/webhooks/<webhook_id>/<webhook_token>
-	u, err := url.Parse(receiver)
+	u, err := url.Parse(recipient)
 	if err != nil {
 		return fmt.Errorf("invalid webhook URL: %w", err)
 	}
@@ -101,7 +101,7 @@ func (c *webhookClient) setSession(session *discordgo.Session) {
 // Service struct holds necessary data to communicate with the Discord API.
 type Service struct {
 	client        client
-	receivers     []string
+	recipients    []string
 	name          string
 	renderMessage func(conf SendConfig) string
 }
@@ -144,7 +144,7 @@ func NewBot(token string, opts ...Option) (*Service, error) {
 	return newService(client, "discord-bot", opts...)
 }
 
-// NewWebhook creates a new Discord webhook service. The receiver string must be a webhook URL.
+// NewWebhook creates a new Discord webhook service. The recipient string must be a webhook URL.
 func NewWebhook(opts ...Option) (*Service, error) {
 	session, err := authenticate("") // Create an unauthenticated session.
 	if err != nil {
@@ -161,10 +161,10 @@ func (s *Service) Name() string {
 	return s.name
 }
 
-// AddReceivers takes Service channel IDs or webhook URLs and adds them to the list of receivers. You can add more
-// channel IDs or webhook URLs by calling AddReceivers again.
-func (s *Service) AddReceivers(receivers ...string) {
-	s.receivers = append(s.receivers, receivers...)
+// AddRecipients takes Service channel IDs or webhook URLs and adds them to the list of recipients. You can add more
+// channel IDs or webhook URLs by calling AddRecipients again.
+func (s *Service) AddRecipients(recipients ...string) {
+	s.recipients = append(s.recipients, recipients...)
 }
 
 // Option is a function that applies an option to the service.
@@ -178,11 +178,11 @@ func WithClient(session *discordgo.Session) Option {
 	}
 }
 
-// WithReceivers sets the channel IDs or webhook URLs to send messages to. You can add more channel IDs or webhook URLs
-// by calling Service.AddReceivers.
-func WithReceivers(receivers ...string) Option {
+// WithRecipients sets the channel IDs or webhook URLs to send messages to. You can add more channel IDs or webhook URLs
+// by calling Service.AddRecipients.
+func WithRecipients(recipients ...string) Option {
 	return func(d *Service) {
-		d.receivers = receivers
+		d.recipients = recipients
 	}
 }
 

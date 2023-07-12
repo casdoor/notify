@@ -49,12 +49,12 @@ channel could look like this:
 ```go
 
 func main() {
-    // Create a new telegram service. We're using the new constructor option WithReceivers() to specify the receivers. We can,
-    // however, also rely on the old way of doing things and add the receivers to the service later on using the AddReceivers()
+    // Create a new telegram service. We're using the new constructor option WithRecipients() to specify the recipients. We can,
+    // however, also rely on the old way of doing things and add the recipients to the service later on using the AddRecipients()
     // method.
     svc, _ := telegram.New(
         token,
-        telegram.WithReceivers(receiver),
+        telegram.WithRecipients(recipient),
     )
 
 	// Create the actual notify instance and pass the telegram service to it. Again, we're making use of the new constructor
@@ -84,7 +84,7 @@ attachments and metadata along with the notification.
 func main() {
     // Create a new discord webhook service.
     svc, _ := discord.NewWebhook(
-        discord.WithReceivers(webhookURL),
+        discord.WithRecipients(webhookURL),
         discord.WithMessageRenderer(customRenderer),
     )
 

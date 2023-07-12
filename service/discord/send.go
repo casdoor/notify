@@ -50,12 +50,12 @@ func (c *SendConfig) SetMetadata(metadata map[string]any) {
 }
 
 // sendTo sends a message to a channel or a webhook URL. It returns an error if the message could not be sent.
-func (s *Service) sendTo(ctx context.Context, receiver string, conf SendConfig) error {
+func (s *Service) sendTo(ctx context.Context, recipient string, conf SendConfig) error {
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
 	default:
-		if err := s.client.sendTo(receiver, conf); err != nil {
+		if err := s.client.sendTo(recipient, conf); err != nil {
 			return err
 		}
 	}
@@ -65,8 +65,8 @@ func (s *Service) sendTo(ctx context.Context, receiver string, conf SendConfig) 
 
 // Send takes a message subject and a message body and sends them to all previously set chats.
 func (s *Service) Send(ctx context.Context, subject, message string, opts ...notify.SendOption) error {
-	if len(s.receivers) == 0 {
-		return notify.ErrNoReceivers
+	if len(s.recipients) == 0 {
+		return notify.ErrNoRecipients
 	}
 
 	conf := SendConfig{
@@ -80,9 +80,9 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 
 	conf.message = s.renderMessage(conf)
 
-	for _, receiver := range s.receivers {
-		if err := s.sendTo(ctx, receiver, conf); err != nil {
-			return notify.NewErrSendNotification(receiver, err)
+	for _, recipient := range s.recipients {
+		if err := s.sendTo(ctx, recipient, conf); err != nil {
+			return notify.NewErrSendNotification(recipient, err)
 		}
 	}
 

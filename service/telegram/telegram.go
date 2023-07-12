@@ -64,8 +64,8 @@ func (s *Service) Name() string {
 	return s.name
 }
 
-// AddReceivers adds chat IDs that should receive messages.
-func (s *Service) AddReceivers(chatIDs ...int64) {
+// AddRecipients adds chat IDs that should receive messages.
+func (s *Service) AddRecipients(chatIDs ...int64) {
 	s.chatIDs = append(s.chatIDs, chatIDs...)
 }
 
@@ -79,8 +79,8 @@ func WithClient(client *telegram.BotAPI) Option {
 	}
 }
 
-// WithReceivers sets the chat IDs that should receive messages. You can add more chat IDs by calling AddReceivers.
-func WithReceivers(chatIDs ...int64) Option {
+// WithRecipients sets the chat IDs that should receive messages. You can add more chat IDs by calling AddRecipients.
+func WithRecipients(chatIDs ...int64) Option {
 	return func(s *Service) {
 		s.chatIDs = chatIDs
 	}
