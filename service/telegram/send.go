@@ -129,7 +129,7 @@ func (s *Service) sendToChat(ctx context.Context, chatID int64, conf SendConfig)
 // not be sent.
 func (s *Service) Send(ctx context.Context, subject, message string, opts ...notify.SendOption) error {
 	if len(s.chatIDs) == 0 {
-		return notify.NewErrNoReceivers(s.Name())
+		return notify.ErrNoReceivers
 	}
 
 	conf := SendConfig{
@@ -146,7 +146,7 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 
 	for _, chatID := range s.chatIDs {
 		if err := s.sendToChat(ctx, chatID, conf); err != nil {
-			return err
+			return notify.NewErrSendNotification(chatID, err)
 		}
 	}
 

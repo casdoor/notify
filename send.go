@@ -14,7 +14,9 @@ func (n *Notify) Send(ctx context.Context, subject, message string, opts ...Send
 	for _, service := range n.services {
 		service := service
 		eg.Go(func() error {
-			return newErrSendNotification(service.Name(), service.Send(ctx, subject, message, opts...))
+			return newErrServiceFailure(service.Name(),
+				service.Send(ctx, subject, message, opts...),
+			)
 		})
 	}
 

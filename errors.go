@@ -1,38 +1,61 @@
 package notify
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
-// ErrSendNotification signals that the notifier failed to send a notification.
+// ErrNoReceivers indicates that there are no receivers specified for a service.
+var ErrNoReceivers = errors.New("no receivers specified")
+
+// ErrSendNotification encapsulates any errors that occur when sending a notification.
 type ErrSendNotification struct {
-	Service string
-	Message string
+	// ReceiverID is the ID of the receiver that failed to receive the notification.
+	ReceiverID any
+	// Cause is the underlying error that caused the notification to fail.
+	Cause error
 }
 
-// Error returns the error message. It implements the error interface.
+// Error provides the string representation of the ErrSendNotification error.
 func (e *ErrSendNotification) Error() string {
-	return fmt.Sprintf("failed to send notification via %s: %s", e.Service, e.Message)
+	return fmt.Sprintf("Failed to send notification to receiver: %v, cause: %v", e.ReceiverID, e.Cause)
 }
 
-func newErrSendNotification(service string, cause error) error {
-	if cause == nil {
-		return nil
+// Unwrap retrieves the underlying error for the ErrSendNotification error.
+func (e *ErrSendNotification) Unwrap() error {
+	return e.Cause
+}
+
+// NewErrSendNotification is a factory function that creates and returns a new ErrSendNotification error.
+func NewErrSendNotification(receiver any, cause error) *ErrSendNotification {
+	return &ErrSendNotification{
+		ReceiverID: receiver,
+		Cause:      cause,
 	}
-
-	return &ErrSendNotification{Service: service, Message: cause.Error()}
 }
 
-// ErrNoReceivers signals that no receivers were specified for a service.
-type ErrNoReceivers struct {
+// ErrServiceFailure represents an error that occurs when a service fails.
+type ErrServiceFailure struct {
+	// Service is the name of the service that failed.
 	Service string
+	// Err is the underlying error that caused the service to fail.
+	Err error
 }
 
-// Error returns the error message. It implements the error interface.
-func (e *ErrNoReceivers) Error() string {
-	return fmt.Sprintf("no receivers specified for service %s", e.Service)
+// Unwrap retrieves the underlying error for the ErrServiceFailure error.
+func (e *ErrServiceFailure) Unwrap() error {
+	return e.Err
 }
 
-// NewErrNoReceivers creates a new ErrNoReceivers error. ErrNoReceivers signals that no receivers were specified for a
-// service. The service name should be passed as an argument to provide more context.
-func NewErrNoReceivers(service string) error {
-	return &ErrNoReceivers{Service: service}
+// Error provides the string representation of the ErrServiceFailure error.
+func (e *ErrServiceFailure) Error() string {
+	return fmt.Sprintf("%s: %s", e.Service, e.Err)
+}
+
+// newErrServiceFailure is a factory function that creates and returns a new ErrServiceFailure error.
+func newErrServiceFailure(service string, err error) *ErrServiceFailure {
+	return &ErrServiceFailure{
+		Service: service,
+		Err:     err,
+	}
 }

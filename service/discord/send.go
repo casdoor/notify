@@ -66,7 +66,7 @@ func (s *Service) sendTo(ctx context.Context, receiver string, conf SendConfig) 
 // Send takes a message subject and a message body and sends them to all previously set chats.
 func (s *Service) Send(ctx context.Context, subject, message string, opts ...notify.SendOption) error {
 	if len(s.receivers) == 0 {
-		return notify.NewErrNoReceivers(s.Name())
+		return notify.ErrNoReceivers
 	}
 
 	conf := SendConfig{
@@ -82,7 +82,7 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 
 	for _, receiver := range s.receivers {
 		if err := s.sendTo(ctx, receiver, conf); err != nil {
-			return err
+			return notify.NewErrSendNotification(receiver, err)
 		}
 	}
 
