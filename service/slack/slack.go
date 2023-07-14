@@ -42,8 +42,10 @@ type Service struct {
 	escapeMessage bool
 }
 
-// New creates a new instance of the Slack service with a default configuration. It receives as input the required Slack token and optional configurations.
-func New(token string, opts ...Option) *Service {
+// New creates a new instance of the Slack service with a default configuration. It receives as input the required Slack
+// token and optional configurations. If no configuration is provided, the default values are used. This function never
+// returns an error. It has a return value for consistency with other services.
+func New(token string, opts ...Option) (*Service, error) {
 	client := slack.New(token)
 
 	s := &Service{
@@ -56,7 +58,7 @@ func New(token string, opts ...Option) *Service {
 		opt(s)
 	}
 
-	return s
+	return s, nil
 }
 
 // Name returns the name of the service, which identifies the type of service in use (in this case, Slack).
