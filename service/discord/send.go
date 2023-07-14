@@ -3,9 +3,10 @@ package discord
 import (
 	"context"
 	"fmt"
-	"github.com/bwmarrin/discordgo"
 	"net/url"
 	"strings"
+
+	"github.com/bwmarrin/discordgo"
 
 	"github.com/nikoksr/notify/v2"
 )
