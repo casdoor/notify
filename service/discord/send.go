@@ -127,7 +127,7 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 
 	for _, recipient := range s.recipients {
 		if err := s.sendTo(ctx, recipient, conf); err != nil {
-			return notify.NewErrSendNotification(recipient, err)
+			return &notify.ErrSendNotification{Recipient: recipient, Cause: err}
 		}
 	}
 

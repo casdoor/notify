@@ -13,10 +13,13 @@ func (n *Notify) Send(ctx context.Context, subject, message string, opts ...Send
 	var eg errgroup.Group
 	for _, service := range n.services {
 		service := service
+
 		eg.Go(func() error {
-			return newErrServiceFailure(service.Name(),
-				service.Send(ctx, subject, message, opts...),
-			)
+			if err := service.Send(ctx, subject, message, opts...); err != nil {
+				return &ErrServiceFailure{Service: service.Name(), Cause: err}
+			}
+
+			return nil
 		})
 	}
 

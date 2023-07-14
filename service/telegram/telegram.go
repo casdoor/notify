@@ -1,6 +1,8 @@
 package telegram
 
 import (
+	"errors"
+	"net/http"
 	"strings"
 
 	telegram "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -38,11 +40,27 @@ type Service struct {
 	parseMode string
 }
 
+func toNotifyError(err error) error {
+	var typedErr *telegram.Error
+	if !errors.As(err, &typedErr) {
+		return err
+	}
+
+	switch typedErr.Code {
+	case http.StatusUnauthorized, http.StatusForbidden:
+		return &notify.ErrUnauthorized{Cause: err}
+	case http.StatusTooManyRequests:
+		return &notify.ErrRateLimitExceeded{Cause: err}
+	}
+
+	return err
+}
+
 // New creates a new telegram service. It returns an error if the telegram client could not be created.
 func New(token string, opts ...Option) (*Service, error) {
 	client, err := telegram.NewBotAPI(token)
 	if err != nil {
-		return nil, err
+		return nil, toNotifyError(err)
 	}
 
 	s := &Service{
