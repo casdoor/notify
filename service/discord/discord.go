@@ -1,12 +1,11 @@
 package discord
 
 import (
-	"context"
-	"strings"
+    "strings"
 
-	"github.com/bwmarrin/discordgo"
+    "github.com/bwmarrin/discordgo"
 
-	"github.com/nikoksr/notify/v2"
+    "github.com/nikoksr/notify/v2"
 )
 
 var (
@@ -35,7 +34,7 @@ type webhookClient struct {
 
 type client interface {
 	setSession(session *discordgo.Session)
-	sendTo(ctx context.Context, recipient string, conf SendConfig) error
+	sendTo(recipient string, conf SendConfig) error
 }
 
 func (c *authClient) setSession(session *discordgo.Session) {
