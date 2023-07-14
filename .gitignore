@@ -11,3 +11,10 @@ tmp/
 .env
 coverage.out
 cover.html
+
+# Ignore everything in the service folder
+service/
+
+# Except the ones that are considered ready
+!service/discord
+!service/telegram
