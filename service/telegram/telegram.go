@@ -3,7 +3,7 @@ package telegram
 import (
 	"strings"
 
-	telegram "github.com/go-telegram-bot-api/telegram-bot-api"
+	telegram "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
 	"github.com/nikoksr/notify/v2"
 )

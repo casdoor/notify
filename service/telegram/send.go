@@ -2,9 +2,7 @@ package telegram
 
 import (
 	"context"
-	"fmt"
-
-	telegram "github.com/go-telegram-bot-api/telegram-bot-api"
+	telegram "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
 	"github.com/nikoksr/notify/v2"
 )
@@ -77,29 +75,39 @@ func SendWithParseMode(parseMode string) notify.SendOption {
 
 // Send logic
 
-// sendMessageToChat sends a message to a chat. It returns an error if the message could not be sent.
-func (s *Service) sendMessageToChat(ctx context.Context, chatID int64, conf SendConfig) error {
+// sendToChat sends a message to a chat. It returns an error if the message could not be sent.
+func (s *Service) sendToChat(ctx context.Context, chatID int64, conf SendConfig) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
 	if conf.message == "" {
 		return nil
 	}
 
+	if len(conf.attachments) == 0 {
+		return s.sendTextMessage(chatID, conf)
+	}
+
+	return s.sendFileAttachments(ctx, chatID, conf)
+}
+
+// sendTextMessage sends a text message
+func (s *Service) sendTextMessage(chatID int64, conf SendConfig) error {
 	message := telegram.NewMessage(chatID, conf.message)
 	message.ParseMode = conf.parseMode
 
 	_, err := s.client.Send(message)
-
 	return err
 }
 
-// sendAttachmentsToChat sends attachments to a chat. It returns an error if the message could not be sent.
-func (s *Service) sendAttachmentsToChat(ctx context.Context, chatID int64, conf SendConfig) error {
-	for _, attachment := range conf.attachments {
-		document := telegram.NewDocumentUpload(chatID, telegram.FileReader{
-			Reader: attachment,
-			Name:   attachment.Name(),
-			Size:   -1,
-		})
-		if _, err := s.client.Send(document); err != nil {
+// sendFileAttachments sends file attachments
+func (s *Service) sendFileAttachments(ctx context.Context, chatID int64, conf SendConfig) error {
+	for idx, attachment := range conf.attachments {
+		isFirst := idx == 0
+		if err := s.sendFile(chatID, conf, isFirst, attachment); err != nil {
 			return err
 		}
 	}
@@ -107,22 +115,21 @@ func (s *Service) sendAttachmentsToChat(ctx context.Context, chatID int64, conf 
 	return nil
 }
 
-// sendToChat sends a message to a chat. It returns an error if the message could not be sent.
-func (s *Service) sendToChat(ctx context.Context, chatID int64, conf SendConfig) error {
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-		if err := s.sendMessageToChat(ctx, chatID, conf); err != nil {
-			return fmt.Errorf("send message to chat: %w", err)
-		}
+// sendFile sends an individual file
+func (s *Service) sendFile(chatID int64, conf SendConfig, isFirst bool, attachment notify.Attachment) error {
+	document := telegram.NewDocument(chatID, telegram.FileReader{
+		Reader: attachment,
+		Name:   attachment.Name(),
+	})
 
-		if err := s.sendAttachmentsToChat(ctx, chatID, conf); err != nil {
-			return fmt.Errorf("send attachments to chat: %w", err)
-		}
+	// Set caption only for the first file
+	if isFirst {
+		document.Caption = conf.message
+		document.ParseMode = conf.parseMode
 	}
 
-	return nil
+	_, err := s.client.Send(document)
+	return err
 }
 
 // Send sends a message to all chats that are configured to receive messages. It returns an error if the message could
