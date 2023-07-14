@@ -64,8 +64,8 @@ func (s *Service) Name() string {
 	return s.name
 }
 
-// AddReceivers appends given channel IDs onto an internal list that Send uses to distribute the notifications.
-func (s *Service) AddReceivers(channelIDs ...string) {
+// AddRecipients appends given channel IDs onto an internal list that Send uses to distribute the notifications.
+func (s *Service) AddRecipients(channelIDs ...string) {
 	s.channelIDs = append(s.channelIDs, channelIDs...)
 }
 
@@ -81,8 +81,8 @@ func WithClient(client *slack.Client) Option {
 	}
 }
 
-// WithReceivers sets the default recipients for the notifications on the service.
-func WithReceivers(channelIDs ...string) Option {
+// WithRecipients sets the default recipients for the notifications on the service.
+func WithRecipients(channelIDs ...string) Option {
 	return func(t *Service) {
 		t.channelIDs = channelIDs
 	}
