@@ -9,13 +9,7 @@ import (
 )
 
 // sendToChat sends a message to a chat. It returns an error if the message could not be sent.
-func (s *Service) sendToChat(ctx context.Context, chatID int64, conf SendConfig) error {
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-	}
-
+func (s *Service) sendToChat(chatID int64, conf SendConfig) error {
 	if conf.message == "" {
 		return nil
 	}
@@ -24,7 +18,7 @@ func (s *Service) sendToChat(ctx context.Context, chatID int64, conf SendConfig)
 		return s.sendTextMessage(chatID, conf)
 	}
 
-	return s.sendFileAttachments(ctx, chatID, conf)
+	return s.sendFileAttachments(chatID, conf)
 }
 
 // sendTextMessage sends a text message
@@ -37,7 +31,7 @@ func (s *Service) sendTextMessage(chatID int64, conf SendConfig) error {
 }
 
 // sendFileAttachments sends file attachments
-func (s *Service) sendFileAttachments(ctx context.Context, chatID int64, conf SendConfig) error {
+func (s *Service) sendFileAttachments(chatID int64, conf SendConfig) error {
 	for idx, attachment := range conf.attachments {
 		isFirst := idx == 0
 		if err := s.sendFile(chatID, conf, isFirst, attachment); err != nil {
@@ -85,8 +79,13 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 	conf.message = s.renderMessage(conf)
 
 	for _, chatID := range s.chatIDs {
-		if err := s.sendToChat(ctx, chatID, conf); err != nil {
-			return &notify.ErrSendNotification{Recipient: chatID, Cause: err}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+			if err := s.sendToChat(chatID, conf); err != nil {
+				return &notify.ErrSendNotification{Recipient: chatID, Cause: err}
+			}
 		}
 	}
 
