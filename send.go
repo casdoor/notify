@@ -16,7 +16,7 @@ func (n *Notify) Send(ctx context.Context, subject, message string, opts ...Send
 
 		eg.Go(func() error {
 			if err := service.Send(ctx, subject, message, opts...); err != nil {
-				return &ErrServiceFailure{Service: service.Name(), Cause: err}
+				return &ServiceFailureError{Service: service.Name(), Cause: err}
 			}
 
 			return nil
