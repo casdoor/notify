@@ -51,8 +51,8 @@ func (c *webhookClient) sendTo(recipient string, conf SendConfig) error {
 }
 
 // sendTo sends a message to a channel or a webhook URL. It returns an error if the message could not be sent.
-func (s *Service) sendTo(ctx context.Context, recipient string, conf SendConfig) error {
-	return s.client.sendTo(ctx, recipient, conf)
+func (s *Service) sendTo(_ context.Context, recipient string, conf SendConfig) error {
+	return s.client.sendTo(recipient, conf)
 }
 
 // Send takes a message subject and a message body and sends them to all previously set chats.
@@ -77,8 +77,12 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
-			if err := s.sendTo(ctx, recipient, conf); err != nil {
-				return &notify.ErrSendNotification{Recipient: recipient, Cause: err}
+		}
+
+		if err := s.sendTo(ctx, recipient, conf); err != nil {
+			return &notify.SendNotificationError{
+				Recipient: recipient,
+				Cause:     asNotifyError(err),
 			}
 		}
 	}

@@ -2,8 +2,10 @@ package slack
 
 import (
 	"context"
-	"github.com/nikoksr/notify/v2"
+
 	"github.com/slack-go/slack"
+
+	"github.com/nikoksr/notify/v2"
 )
 
 func (s *Service) sendFile(ctx context.Context, channelID string, conf SendConfig, isFirst bool, attachment notify.Attachment) error {
@@ -77,8 +79,12 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
-			if err := s.sendToChannel(ctx, channelID, conf); err != nil {
-				return &notify.ErrSendNotification{Recipient: channelID, Cause: err}
+		}
+
+		if err := s.sendToChannel(ctx, channelID, conf); err != nil {
+			return &notify.SendNotificationError{
+				Recipient: channelID,
+				Cause:     asNotifyError(err),
 			}
 		}
 	}

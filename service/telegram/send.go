@@ -83,8 +83,12 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
-			if err := s.sendToChat(chatID, conf); err != nil {
-				return &notify.ErrSendNotification{Recipient: chatID, Cause: err}
+		}
+
+		if err := s.sendToChat(chatID, conf); err != nil {
+			return &notify.SendNotificationError{
+				Recipient: chatID,
+				Cause:     asNotifyError(err),
 			}
 		}
 	}

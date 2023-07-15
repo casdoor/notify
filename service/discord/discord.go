@@ -1,11 +1,11 @@
 package discord
 
 import (
-    "strings"
+	"strings"
 
-    "github.com/bwmarrin/discordgo"
+	"github.com/bwmarrin/discordgo"
 
-    "github.com/nikoksr/notify/v2"
+	"github.com/nikoksr/notify/v2"
 )
 
 var (
