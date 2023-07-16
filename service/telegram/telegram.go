@@ -11,9 +11,9 @@ import (
 var _ notify.Service = (*Service)(nil)
 
 const (
-	// ModeHTML is the default mode for sending messages.
+	// ModeHTML is one of the modes for sending messages.
 	ModeHTML = telegram.ModeHTML
-	// ModeMarkdown is the markdown mode for sending messages.
+	// ModeMarkdown is the default mode for sending messages.
 	ModeMarkdown = telegram.ModeMarkdown
 )
 
