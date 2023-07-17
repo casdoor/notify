@@ -52,8 +52,7 @@ func main() {
     // Create a new telegram service. We're using the new constructor option WithRecipients() to specify the recipients. We can,
     // however, also rely on the old way of doing things and add the recipients to the service later on using the AddRecipients()
     // method.
-    svc, _ := telegram.New(
-        token,
+    svc, _ := telegram.New(token,
         telegram.WithRecipients(recipient),
     )
 
@@ -142,10 +141,13 @@ Yes, please! Contributions of all kinds are very welcome! Feel free to check our
 
 > Click [here](https://github.com/nikoksr/notify/issues/new?assignees=&labels=affects%2Fservices%2C+good+first+issue%2C+hacktoberfest%2C+help+wanted%2C+type%2Fenhancement%2C+up+for+grabs&template=service-request.md&title=feat%28service%29%3A+Add+%5BSERVICE+NAME%5D+service) to request a missing service.
 
-| Service                          | Path                                 | Credits                                                                                         |       Status       |
-|----------------------------------|--------------------------------------|-------------------------------------------------------------------------------------------------|:------------------:|
-| [Discord](https://discord.com)   | [service/discord](service/discord)   | [bwmarrin/discordgo](https://github.com/bwmarrin/discordgo)                                     | :heavy_check_mark: |
-| [Telegram](https://telegram.org) | [service/telegram](service/telegram) | [go-telegram-bot-api/telegram-bot-api](https://github.com/go-telegram-bot-api/telegram-bot-api) | :heavy_check_mark: |
+| Service                                     | Path                                 | Credits                                                                                         |       Tested       |
+|---------------------------------------------|--------------------------------------|-------------------------------------------------------------------------------------------------|:------------------:|
+| [Discord](https://discord.com)              | [service/discord](service/discord)   | [bwmarrin/discordgo](https://github.com/bwmarrin/discordgo)                                     | :heavy_check_mark: |
+| [Mail](https://en.wikipedia.org/wiki/Email) | [service/mail](service/mail)         | [xhit/go-simple-mail/v2](https://github.com/xhit/go-simple-mail)                                |        :x:         |
+| [Ntfy](https://ntfy.sh)                     | [service/ntfy](service/ntfy)         | -                                                                                               | :heavy_check_mark: |
+| [Slack](https://slack.com)                  | [service/slack](service/slack)       | [slack-go/slack](https://github.com/slack-go/slack)                                             | :heavy_check_mark: |
+| [Telegram](https://telegram.org)            | [service/telegram](service/telegram) | [go-telegram-bot-api/telegram-bot-api](https://github.com/go-telegram-bot-api/telegram-bot-api) | :heavy_check_mark: |
 
 ## Special Thanks <a id="special_thanks"></a>
 
