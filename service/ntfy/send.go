@@ -87,6 +87,10 @@ func (s *Service) sendToTopic(ctx context.Context, topic string, conf SendConfig
 // Send sends a message to all topics that are configured to receive messages. It returns an error if the message could
 // not be sent.
 func (s *Service) Send(ctx context.Context, subject, message string, opts ...notify.SendOption) error {
+	if len(s.topics) == 0 {
+		return notify.ErrNoRecipients
+	}
+
 	conf := SendConfig{
 		subject:     subject,
 		message:     message,
