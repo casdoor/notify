@@ -40,6 +40,22 @@ func (e *RateLimitError) Unwrap() error {
 	return e.Cause
 }
 
+// BadRequestError indicates that the request to the remote service was incorrect.
+type BadRequestError struct {
+	// Cause is the underlying error that caused the bad request error.
+	Cause error
+}
+
+// Error provides the string representation of the BadRequestError error.
+func (e *BadRequestError) Error() string {
+	return fmt.Sprintf("bad request: %v", e.Cause)
+}
+
+// Unwrap retrieves the underlying error for the BadRequestError error.
+func (e *BadRequestError) Unwrap() error {
+	return e.Cause
+}
+
 // SendNotificationError encapsulates any errors that occur when sending a notification.
 type SendNotificationError struct {
 	// Recipient is the identifier of the recipient that the notification failed to send to. Commonly an email address,
