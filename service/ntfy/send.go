@@ -105,6 +105,8 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 		opt(&conf)
 	}
 
+	conf.message = s.renderMessage(conf)
+
 	for _, topic := range s.topics {
 		select {
 		case <-ctx.Done():
