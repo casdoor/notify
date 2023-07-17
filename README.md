@@ -146,7 +146,7 @@ Yes, please! Contributions of all kinds are very welcome! Feel free to check our
 | [Discord](https://discord.com)              | [service/discord](service/discord)   | [bwmarrin/discordgo](https://github.com/bwmarrin/discordgo)                                     | :heavy_check_mark: |
 | [Mail](https://en.wikipedia.org/wiki/Email) | [service/mail](service/mail)         | [xhit/go-simple-mail/v2](https://github.com/xhit/go-simple-mail)                                |        :x:         |
 | [Ntfy](https://ntfy.sh)                     | [service/ntfy](service/ntfy)         | -                                                                                               | :heavy_check_mark: |
-| [Slack](https://slack.com)                  | [service/slack](service/slack)       | [slack-go/slack](https://github.com/slack-go/slack)                                             | :heavy_check_mark: |
+| [Slack](https://slack.com)                  | [service/slack](service/slack)       | [slack-go/slack](https://github.com/slack-go/slack)                                             |        :x:         |
 | [Telegram](https://telegram.org)            | [service/telegram](service/telegram) | [go-telegram-bot-api/telegram-bot-api](https://github.com/go-telegram-bot-api/telegram-bot-api) | :heavy_check_mark: |
 
 ## Special Thanks <a id="special_thanks"></a>
