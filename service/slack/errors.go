@@ -14,6 +14,7 @@ func asNotifyError(err error) error {
 		return nil
 	}
 
+	// Rate limit
 	var rateLimitErr *slack.RateLimitedError
 	if errors.As(err, &rateLimitErr) {
 		return &notify.RateLimitError{Cause: err}
@@ -23,10 +24,12 @@ func asNotifyError(err error) error {
 	if errors.As(err, &statusCodeErr) {
 		switch statusCodeErr.Code {
 		case http.StatusUnauthorized, http.StatusForbidden:
+			// Unauthorized
 			return &notify.UnauthorizedError{Cause: err}
 		default:
 		}
 	}
 
-	return err
+	// If none of the above matched, return a generic bad request error
+	return &notify.BadRequestError{Cause: err}
 }

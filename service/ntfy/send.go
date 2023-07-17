@@ -117,7 +117,7 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 		if err := s.sendToTopic(ctx, topic, conf); err != nil {
 			return &notify.SendNotificationError{
 				Recipient: topic,
-				Cause:     err,
+				Cause:     err, // asNotifyError has been called in sendToTopic, as it requires the http response
 			}
 		}
 	}
