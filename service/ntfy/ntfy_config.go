@@ -1,6 +1,10 @@
 package ntfy
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/nikoksr/onelog"
+)
 
 // Option is a function that can be used to configure the ntfy service.
 type Option = func(*Service)
@@ -9,6 +13,16 @@ type Option = func(*Service)
 func WithClient(client *http.Client) Option {
 	return func(s *Service) {
 		s.client = client
+		s.logger.Info().Msg("Ntfy client set")
+	}
+}
+
+// WithLogger sets the logger. The default logger is a no-op logger.
+func WithLogger(logger onelog.Logger) Option {
+	return func(s *Service) {
+		logger = logger.With("service", s.Name()) // Add service name to logger
+		s.logger = logger
+		s.logger.Info().Msg("Logger set")
 	}
 }
 
@@ -16,6 +30,7 @@ func WithClient(client *http.Client) Option {
 func WithRecipients(topics ...string) Option {
 	return func(s *Service) {
 		s.AddRecipients(topics...)
+		s.logger.Info().Int("count", len(topics)).Int("total", len(s.topics)).Msg("Recipients set")
 	}
 }
 
@@ -23,6 +38,7 @@ func WithRecipients(topics ...string) Option {
 func WithName(name string) Option {
 	return func(s *Service) {
 		s.name = name
+		s.logger.Info().Str("name", name).Msg("Service name set")
 	}
 }
 
@@ -42,6 +58,7 @@ func WithName(name string) Option {
 func WithMessageRenderer(builder func(conf SendConfig) string) Option {
 	return func(s *Service) {
 		s.renderMessage = builder
+		s.logger.Info().Msg("Message renderer set")
 	}
 }
 
@@ -49,6 +66,7 @@ func WithMessageRenderer(builder func(conf SendConfig) string) Option {
 func WithAPIBaseURL(url string) Option {
 	return func(s *Service) {
 		s.apiBaseURL = url
+		s.logger.Info().Str("url", url).Msg("API base URL set")
 	}
 }
 
@@ -56,6 +74,7 @@ func WithAPIBaseURL(url string) Option {
 func WithParseMode(mode Mode) Option {
 	return func(s *Service) {
 		s.parseMode = mode
+		s.logger.Info().Str("mode", string(mode)).Msg("Parse mode set")
 	}
 }
 
@@ -63,6 +82,7 @@ func WithParseMode(mode Mode) Option {
 func WithPriority(priority Priority) Option {
 	return func(s *Service) {
 		s.priority = priority
+		s.logger.Info().Int("priority", int(priority)).Msg("Priority set")
 	}
 }
 
@@ -70,6 +90,7 @@ func WithPriority(priority Priority) Option {
 func WithTags(tags ...string) Option {
 	return func(s *Service) {
 		s.tags = tags
+		s.logger.Info().Int("count", len(tags)).Int("total", len(s.tags)).Msg("Tags set")
 	}
 }
 
@@ -77,6 +98,7 @@ func WithTags(tags ...string) Option {
 func WithIcon(icon string) Option {
 	return func(s *Service) {
 		s.icon = icon
+		s.logger.Info().Str("icon", icon).Msg("Icon set")
 	}
 }
 
@@ -84,6 +106,7 @@ func WithIcon(icon string) Option {
 func WithDelay(delay string) Option {
 	return func(s *Service) {
 		s.delay = delay
+		s.logger.Info().Str("delay", delay).Msg("Delay set")
 	}
 }
 
@@ -91,5 +114,6 @@ func WithDelay(delay string) Option {
 func WithClickAction(action string) Option {
 	return func(s *Service) {
 		s.clickAction = action
+		s.logger.Info().Str("clickAction", action).Msg("Click action set")
 	}
 }

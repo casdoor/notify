@@ -1,6 +1,9 @@
 package discord
 
-import "github.com/bwmarrin/discordgo"
+import (
+	"github.com/bwmarrin/discordgo"
+	"github.com/nikoksr/onelog"
+)
 
 // Option is a function that applies an option to the service.
 type Option = func(*Service)
@@ -10,6 +13,16 @@ type Option = func(*Service)
 func WithClient(session *discordgo.Session) Option {
 	return func(s *Service) {
 		s.client.setSession(session)
+		s.logger.Info().Msg("Discord client set")
+	}
+}
+
+// WithLogger sets the logger. The default logger is a no-op logger.
+func WithLogger(logger onelog.Logger) Option {
+	return func(s *Service) {
+		logger = logger.With("service", s.Name()) // Add service name to logger
+		s.logger = logger
+		s.logger.Info().Msg("Logger set")
 	}
 }
 
@@ -18,6 +31,7 @@ func WithClient(session *discordgo.Session) Option {
 func WithRecipients(recipients ...string) Option {
 	return func(d *Service) {
 		d.recipients = recipients
+		d.logger.Info().Int("count", len(recipients)).Int("total", len(d.recipients)).Msg("Recipients set")
 	}
 }
 
@@ -25,6 +39,7 @@ func WithRecipients(recipients ...string) Option {
 func WithName(name string) Option {
 	return func(d *Service) {
 		d.name = name
+		d.logger.Info().Str("name", name).Msg("Service name set")
 	}
 }
 
@@ -44,5 +59,6 @@ func WithName(name string) Option {
 func WithMessageRenderer(builder func(conf SendConfig) string) Option {
 	return func(t *Service) {
 		t.renderMessage = builder
+		t.logger.Info().Msg("Message renderer set")
 	}
 }

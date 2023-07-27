@@ -3,6 +3,8 @@ package slack
 import (
 	"strings"
 
+	"github.com/nikoksr/onelog"
+	nopadapter "github.com/nikoksr/onelog/adapter/nop"
 	"github.com/slack-go/slack"
 
 	"github.com/nikoksr/notify/v2"
@@ -24,16 +26,11 @@ func defaultMessageRenderer(conf SendConfig) string {
 
 // Service is a structure that contains data needed for interaction with Slack's APIs.
 type Service struct {
-	// client is the Slack client used for API requests.
 	client *slack.Client
 
-	// channelIDs represents the Slack channels messages will be sent to.
-	channelIDs []string
-
-	// name is a descriptive identifier for the service, by default "slack".
-	name string
-
-	// renderMessage is the function used to format messages.
+	logger        onelog.Logger
+	channelIDs    []string
+	name          string
 	renderMessage func(conf SendConfig) string
 
 	// Slack specific fields
@@ -51,6 +48,7 @@ func New(token string, opts ...Option) (*Service, error) {
 
 	s := &Service{
 		client:        client,
+		logger:        nopadapter.NewAdapter(),
 		name:          "slack",
 		renderMessage: defaultMessageRenderer,
 	}
@@ -70,4 +68,5 @@ func (s *Service) Name() string {
 // AddRecipients appends given channel IDs onto an internal list that Send uses to distribute the notifications.
 func (s *Service) AddRecipients(channelIDs ...string) {
 	s.channelIDs = append(s.channelIDs, channelIDs...)
+	s.logger.Info().Int("count", len(channelIDs)).Int("total", len(s.channelIDs)).Msg("Recipients added")
 }

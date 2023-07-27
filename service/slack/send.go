@@ -9,6 +9,8 @@ import (
 )
 
 func (s *Service) sendFile(ctx context.Context, channelID string, conf SendConfig, isFirst bool, attachment notify.Attachment) error {
+	s.logger.Debug().Str("recipient", channelID).Str("file", attachment.Name()).Msg("Sending file to channel")
+
 	params := slack.UploadFileV2Parameters{
 		Reader:   attachment,
 		Filename: attachment.Name(),
@@ -20,8 +22,13 @@ func (s *Service) sendFile(ctx context.Context, channelID string, conf SendConfi
 		params.InitialComment = conf.message
 	}
 
-	_, err := s.client.UploadFileV2Context(ctx, params)
-	return err
+	if _, err := s.client.UploadFileV2Context(ctx, params); err != nil {
+		return err
+	}
+
+	s.logger.Info().Str("recipient", channelID).Str("file", attachment.Name()).Msg("File sent to channel")
+
+	return nil
 }
 
 func (s *Service) sendFileAttachments(ctx context.Context, channelID string, conf SendConfig) error {
@@ -36,18 +43,20 @@ func (s *Service) sendFileAttachments(ctx context.Context, channelID string, con
 }
 
 func (s *Service) sendTextMessage(ctx context.Context, channelID string, conf SendConfig) error {
-	_, _, err := s.client.PostMessageContext(ctx, channelID, slack.MsgOptionText(conf.message, conf.escapeMessage))
-	return err
+	s.logger.Debug().Str("recipient", channelID).Msg("Sending text message to channel")
+
+	if _, _, err := s.client.PostMessageContext(ctx, channelID, slack.MsgOptionText(conf.message, conf.escapeMessage)); err != nil {
+		return err
+	}
+
+	s.logger.Info().Str("recipient", channelID).Msg("Text message sent to channel")
+
+	return nil
 }
 
 // sendToChannel sends a message to a specific channel utilizing the SendConfig settings. If no message or attachments
 // are defined, the function will return without error.
 func (s *Service) sendToChannel(ctx context.Context, channelID string, conf SendConfig) error {
-	if conf.message == "" {
-		return nil
-	}
-
-	// decide the way of sending the message based on attachments
 	if len(conf.attachments) == 0 {
 		return s.sendTextMessage(ctx, channelID, conf)
 	}
@@ -74,6 +83,13 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 
 	conf.message = s.renderMessage(conf)
 
+	if conf.message == "" && len(conf.attachments) == 0 {
+		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")
+		return nil
+	}
+
+	s.logger.Debug().Msg("Sending message to all recipients")
+
 	for _, channelID := range s.channelIDs {
 		select {
 		case <-ctx.Done():
@@ -88,6 +104,8 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 			}
 		}
 	}
+
+	s.logger.Info().Msg("Message successfully sent to all recipients")
 
 	return nil
 }

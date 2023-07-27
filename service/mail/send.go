@@ -27,6 +27,11 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 
 	conf.message = s.renderMessage(conf)
 
+	if conf.message == "" && len(conf.attachments) == 0 {
+		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")
+		return nil
+	}
+
 	// Create a new email message.
 	email := mail.NewMSG().
 		SetFrom(s.senderName).
@@ -41,6 +46,8 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 
 	// Add attachments
 	for _, attachment := range conf.attachments {
+		s.logger.Debug().Str("attachment", attachment.Name()).Msg("Adding attachment")
+
 		buf := new(bytes.Buffer)
 		if _, err := buf.ReadFrom(attachment); err != nil {
 			return err
@@ -51,9 +58,13 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 			Data:   buf.Bytes(),
 			Inline: conf.inlineAttachments,
 		})
+
+		s.logger.Info().Str("attachment", attachment.Name()).Msg("Attachment added")
 	}
 
 	// Send the email to the SMTP server.
+	s.logger.Debug().Msg("Sending message to all recipients")
+
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -66,6 +77,8 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 			Cause:     err,       // TODO: convert to Notify error
 		}
 	}
+
+	s.logger.Info().Msg("Message successfully sent to all recipients")
 
 	return nil
 }

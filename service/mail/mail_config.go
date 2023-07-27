@@ -18,6 +18,7 @@ type Option = func(*Service)
 func WithServer(server *mail.SMTPServer) Option {
 	return func(t *Service) {
 		t.server = server
+		t.logger.Info().Msg("Mail server set")
 	}
 }
 
@@ -25,6 +26,7 @@ func WithServer(server *mail.SMTPServer) Option {
 func WithClient(client *mail.SMTPClient) Option {
 	return func(t *Service) {
 		t.client = client
+		t.logger.Info().Msg("Mail client set")
 	}
 }
 
@@ -32,6 +34,7 @@ func WithClient(client *mail.SMTPClient) Option {
 func WithRecipients(recipients ...string) Option {
 	return func(t *Service) {
 		t.recipients = recipients
+		t.logger.Info().Int("count", len(recipients)).Int("total", len(t.recipients)).Msg("Recipients set")
 	}
 }
 
@@ -39,6 +42,7 @@ func WithRecipients(recipients ...string) Option {
 func WithCCRecipients(recipients ...string) Option {
 	return func(t *Service) {
 		t.ccRecipients = recipients
+		t.logger.Info().Int("count", len(recipients)).Int("total", len(t.ccRecipients)).Msg("CC recipients set")
 	}
 }
 
@@ -46,6 +50,7 @@ func WithCCRecipients(recipients ...string) Option {
 func WithBCCRecipients(recipients ...string) Option {
 	return func(t *Service) {
 		t.bccRecipients = recipients
+		t.logger.Info().Int("count", len(recipients)).Int("total", len(t.bccRecipients)).Msg("BCC recipients set")
 	}
 }
 
@@ -53,6 +58,7 @@ func WithBCCRecipients(recipients ...string) Option {
 func WithName(name string) Option {
 	return func(t *Service) {
 		t.name = name
+		t.logger.Info().Str("name", name).Msg("Service name set")
 	}
 }
 
@@ -72,6 +78,7 @@ func WithName(name string) Option {
 func WithMessageRenderer(builder func(conf SendConfig) string) Option {
 	return func(t *Service) {
 		t.renderMessage = builder
+		t.logger.Info().Msg("Message renderer set")
 	}
 }
 
@@ -79,6 +86,7 @@ func WithMessageRenderer(builder func(conf SendConfig) string) Option {
 func WithParseMode(mode Mode) Option {
 	return func(t *Service) {
 		t.parseMode = mode
+		t.logger.Info().Int("mode", int(mode)).Msg("Parse mode set")
 	}
 }
 
@@ -86,6 +94,7 @@ func WithParseMode(mode Mode) Option {
 func WithPriority(priority Priority) Option {
 	return func(t *Service) {
 		t.priority = priority
+		t.logger.Info().Int("priority", int(priority)).Msg("Priority set")
 	}
 }
 
@@ -93,6 +102,7 @@ func WithPriority(priority Priority) Option {
 func WithSenderName(name string) Option {
 	return func(t *Service) {
 		t.senderName = name
+		t.logger.Info().Str("name", name).Msg("Sender name set")
 	}
 }
 
@@ -100,6 +110,7 @@ func WithSenderName(name string) Option {
 func WithInlineAttachments(inline bool) Option {
 	return func(t *Service) {
 		t.inlineAttachments = inline
+		t.logger.Info().Bool("inline", inline).Msg("Inline attachments set")
 	}
 }
 
@@ -107,6 +118,7 @@ func WithInlineAttachments(inline bool) Option {
 func WithKeepAlive(keepAlive bool) Option {
 	return func(t *Service) {
 		t.server.KeepAlive = keepAlive
+		t.logger.Info().Bool("keepAlive", keepAlive).Msg("Keep alive set")
 	}
 }
 
@@ -114,6 +126,7 @@ func WithKeepAlive(keepAlive bool) Option {
 func WithConnectTimeout(timeout time.Duration) Option {
 	return func(t *Service) {
 		t.server.ConnectTimeout = timeout
+		t.logger.Info().Dur("timeout", timeout).Msg("Connect timeout set")
 	}
 }
 
@@ -121,6 +134,7 @@ func WithConnectTimeout(timeout time.Duration) Option {
 func WithSendTimeout(timeout time.Duration) Option {
 	return func(t *Service) {
 		t.server.SendTimeout = timeout
+		t.logger.Info().Dur("timeout", timeout).Msg("Send timeout set")
 	}
 }
 
@@ -128,6 +142,7 @@ func WithSendTimeout(timeout time.Duration) Option {
 func WithEncryption(encryption mail.Encryption) Option {
 	return func(t *Service) {
 		t.server.Encryption = encryption
+		t.logger.Info().Int("encryption", int(encryption)).Msg("Encryption set")
 	}
 }
 
@@ -135,6 +150,7 @@ func WithEncryption(encryption mail.Encryption) Option {
 func WithTLSConfig(config *tls.Config) Option {
 	return func(t *Service) {
 		t.server.TLSConfig = config
+		t.logger.Info().Msg("TLS config set")
 	}
 }
 
@@ -143,6 +159,7 @@ func WithTLSConfig(config *tls.Config) Option {
 func WithAuthType(authentication mail.AuthType) Option {
 	return func(t *Service) {
 		t.server.Authentication = authentication
+		t.logger.Info().Int("authentication", int(authentication)).Msg("Authentication set")
 	}
 }
 
@@ -151,5 +168,6 @@ func WithAuthType(authentication mail.AuthType) Option {
 func WithHelo(helo string) Option {
 	return func(t *Service) {
 		t.server.Helo = helo
+		t.logger.Info().Str("helo", helo).Msg("HELO set")
 	}
 }

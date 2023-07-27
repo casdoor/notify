@@ -11,6 +11,7 @@ type Option = func(*Service)
 func WithClient(client *slack.Client) Option {
 	return func(t *Service) {
 		t.client = client
+		t.logger.Info().Msg("Slack client set")
 	}
 }
 
@@ -18,6 +19,7 @@ func WithClient(client *slack.Client) Option {
 func WithRecipients(channelIDs ...string) Option {
 	return func(t *Service) {
 		t.channelIDs = channelIDs
+		t.logger.Info().Int("count", len(channelIDs)).Int("total", len(t.channelIDs)).Msg("Recipients set")
 	}
 }
 
@@ -25,6 +27,7 @@ func WithRecipients(channelIDs ...string) Option {
 func WithName(name string) Option {
 	return func(t *Service) {
 		t.name = name
+		t.logger.Info().Str("name", name).Msg("Service name set")
 	}
 }
 
@@ -44,6 +47,7 @@ func WithName(name string) Option {
 func WithMessageRenderer(builder func(conf SendConfig) string) Option {
 	return func(t *Service) {
 		t.renderMessage = builder
+		t.logger.Info().Msg("Message renderer set")
 	}
 }
 
@@ -51,5 +55,6 @@ func WithMessageRenderer(builder func(conf SendConfig) string) Option {
 func WithEscapeMessage(escapeMessage bool) Option {
 	return func(t *Service) {
 		t.escapeMessage = escapeMessage
+		t.logger.Info().Bool("escapeMessage", escapeMessage).Msg("Escape message set")
 	}
 }

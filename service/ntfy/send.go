@@ -24,6 +24,8 @@ func sendRequest(client *http.Client, req *http.Request) error {
 }
 
 func (s *Service) sendTextMessage(ctx context.Context, topic string, conf SendConfig) error {
+	s.logger.Debug().Str("topic", topic).Msg("Sending text message to topic")
+
 	payload := &sendMessageRequest{
 		Topic:       topic,
 		Title:       conf.subject,
@@ -48,10 +50,18 @@ func (s *Service) sendTextMessage(ctx context.Context, topic string, conf SendCo
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+s.token)
 
-	return sendRequest(s.client, req)
+	if err := sendRequest(s.client, req); err != nil {
+		return err
+	}
+
+	s.logger.Info().Str("topic", topic).Msg("Text message sent to topic")
+
+	return nil
 }
 
 func (s *Service) sendFile(ctx context.Context, topic string, attachment notify.Attachment) error {
+	s.logger.Debug().Str("topic", topic).Str("file", attachment.Name()).Msg("Sending file to topic")
+
 	// Append topic to base URL, e.g. https://ntfy.sh/my_topic
 	endpoint := s.apiBaseURL + topic
 
@@ -63,7 +73,13 @@ func (s *Service) sendFile(ctx context.Context, topic string, attachment notify.
 	req.Header.Set("Authorization", "Bearer "+s.token)
 	// req.Header.Set("X-Title", attachment.Name())
 
-	return sendRequest(s.client, req)
+	if err := sendRequest(s.client, req); err != nil {
+		return err
+	}
+
+	s.logger.Info().Str("topic", topic).Str("file", attachment.Name()).Msg("File sent to topic")
+
+	return nil
 }
 
 func (s *Service) sendFileAttachments(ctx context.Context, topic string, conf SendConfig) error {
@@ -107,6 +123,13 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 
 	conf.message = s.renderMessage(conf)
 
+	if conf.message == "" && len(conf.attachments) == 0 {
+		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")
+		return nil
+	}
+
+	s.logger.Debug().Msg("Sending message to topics")
+
 	for _, topic := range s.topics {
 		select {
 		case <-ctx.Done():
@@ -121,6 +144,8 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 			}
 		}
 	}
+
+	s.logger.Info().Msg("Message successfully sent to all topics")
 
 	return nil
 }

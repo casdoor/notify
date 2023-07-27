@@ -4,6 +4,8 @@ import (
 	"strings"
 
 	telegram "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/nikoksr/onelog"
+	nopadapter "github.com/nikoksr/onelog/adapter/nop"
 
 	"github.com/nikoksr/notify/v2"
 )
@@ -29,7 +31,9 @@ func defaultMessageRenderer(conf SendConfig) string {
 
 // Service is the telegram service. It is used to send messages to Telegram chats.
 type Service struct {
-	client        *telegram.BotAPI
+	client *telegram.BotAPI
+
+	logger        onelog.Logger
 	chatIDs       []int64
 	name          string
 	renderMessage func(conf SendConfig) string
@@ -47,6 +51,7 @@ func New(token string, opts ...Option) (*Service, error) {
 
 	s := &Service{
 		client:        client,
+		logger:        nopadapter.NewAdapter(),
 		name:          "telegram",
 		renderMessage: defaultMessageRenderer,
 		parseMode:     ModeMarkdown,
@@ -67,4 +72,5 @@ func (s *Service) Name() string {
 // AddRecipients adds chat IDs that should receive messages.
 func (s *Service) AddRecipients(chatIDs ...int64) {
 	s.chatIDs = append(s.chatIDs, chatIDs...)
+	s.logger.Info().Int("count", len(chatIDs)).Int("total", len(s.chatIDs)).Msg("Recipients added")
 }

@@ -3,6 +3,9 @@ package ntfy
 import (
 	"net/http"
 
+	"github.com/nikoksr/onelog"
+	nopadapter "github.com/nikoksr/onelog/adapter/nop"
+
 	"github.com/nikoksr/notify/v2"
 )
 
@@ -62,6 +65,7 @@ func defaultMessageRenderer(conf SendConfig) string {
 type Service struct {
 	client *http.Client
 
+	logger        onelog.Logger
 	topics        []string
 	name          string
 	token         string
@@ -81,6 +85,7 @@ type Service struct {
 func New(token string, opts ...Option) (*Service, error) {
 	s := &Service{
 		client:        http.DefaultClient,
+		logger:        nopadapter.NewAdapter(),
 		name:          "ntfy",
 		token:         token,
 		renderMessage: defaultMessageRenderer,
@@ -104,4 +109,5 @@ func (s *Service) Name() string {
 // AddRecipients adds topics that should receive messages.
 func (s *Service) AddRecipients(topics ...string) {
 	s.topics = append(s.topics, topics...)
+	s.logger.Info().Int("count", len(topics)).Int("total", len(s.topics)).Msg("Recipients added")
 }

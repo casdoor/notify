@@ -4,6 +4,8 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/nikoksr/onelog"
+	nopadapter "github.com/nikoksr/onelog/adapter/nop"
 
 	"github.com/nikoksr/notify/v2"
 )
@@ -26,10 +28,12 @@ func defaultMessageRenderer(conf SendConfig) string {
 
 type authClient struct {
 	session *discordgo.Session
+	logger  onelog.Logger
 }
 
 type webhookClient struct {
 	session *discordgo.Session
+	logger  onelog.Logger
 }
 
 type client interface {
@@ -59,7 +63,9 @@ func (c *webhookClient) setSession(session *discordgo.Session) {
 
 // Service struct holds necessary data to communicate with the Discord API.
 type Service struct {
-	client        client
+	client client
+
+	logger        onelog.Logger
 	recipients    []string
 	name          string
 	renderMessage func(conf SendConfig) string
@@ -68,6 +74,7 @@ type Service struct {
 func newService(client client, name string, opts ...Option) (*Service, error) {
 	svc := &Service{
 		client:        client,
+		logger:        nopadapter.NewAdapter(),
 		name:          name,
 		renderMessage: defaultMessageRenderer,
 	}
@@ -81,38 +88,62 @@ func newService(client client, name string, opts ...Option) (*Service, error) {
 
 // New creates a new Discord service using an OAuth2 token for authentication.
 func New(token string, opts ...Option) (*Service, error) {
+	s, err := newService(nil, "discord", opts...)
+	if err != nil {
+		return nil, err
+	}
+
 	session, err := authenticateWithOAuth2Token(token)
 	if err != nil {
 		return nil, err
 	}
 
-	client := &authClient{session: session}
+	s.client = &authClient{
+		session: session,
+		logger:  s.logger,
+	}
 
-	return newService(client, "discord", opts...)
+	return s, nil
 }
 
 // NewBot creates a new Discord bot service.
 func NewBot(token string, opts ...Option) (*Service, error) {
+	s, err := newService(nil, "discord-bot", opts...)
+	if err != nil {
+		return nil, err
+	}
+
 	session, err := authenticateWithBotToken(token)
 	if err != nil {
 		return nil, err
 	}
 
-	client := &authClient{session: session}
+	s.client = &authClient{
+		session: session,
+		logger:  s.logger,
+	}
 
-	return newService(client, "discord-bot", opts...)
+	return s, nil
 }
 
 // NewWebhook creates a new Discord webhook service. The recipient string must be a webhook URL.
 func NewWebhook(opts ...Option) (*Service, error) {
+	s, err := newService(nil, "discord-webhook", opts...)
+	if err != nil {
+		return nil, err
+	}
+
 	session, err := authenticate("") // Create an unauthenticated session.
 	if err != nil {
 		return nil, err
 	}
 
-	client := &webhookClient{session: session}
+	s.client = &webhookClient{
+		session: session,
+		logger:  s.logger,
+	}
 
-	return newService(client, "discord-webhook", opts...)
+	return s, nil
 }
 
 // Name returns the name of the service.
@@ -124,4 +155,5 @@ func (s *Service) Name() string {
 // channel IDs or webhook URLs by calling AddRecipients again.
 func (s *Service) AddRecipients(recipients ...string) {
 	s.recipients = append(s.recipients, recipients...)
+	s.logger.Info().Int("count", len(recipients)).Int("total", len(s.recipients)).Msg("Recipients added")
 }

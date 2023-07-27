@@ -12,6 +12,8 @@ import (
 )
 
 func (c *authClient) sendTo(recipient string, conf SendConfig) error {
+	c.logger.Debug().Str("recipient", recipient).Msg("Sending message and attachments to channel")
+
 	// Convert notify.Attachment to discordgo.File.
 	files := attachmentsToFiles(conf.attachments)
 
@@ -20,11 +22,18 @@ func (c *authClient) sendTo(recipient string, conf SendConfig) error {
 		Content: conf.message,
 		Files:   files,
 	})
+	if err != nil {
+		return err
+	}
 
-	return err
+	c.logger.Info().Str("recipient", recipient).Msg("Message and attachments sent to channel")
+
+	return nil
 }
 
 func (c *webhookClient) sendTo(recipient string, conf SendConfig) error {
+	c.logger.Debug().Str("recipient", recipient).Msg("Sending message and attachments to webhook")
+
 	// Parse the recipient string as a webhook URL.
 	// The format is: https://discord.com/api/webhooks/<webhook_id>/<webhook_token>
 	u, err := url.Parse(recipient)
@@ -46,8 +55,13 @@ func (c *webhookClient) sendTo(recipient string, conf SendConfig) error {
 		Content: conf.message,
 		Files:   files,
 	})
+	if err != nil {
+		return err
+	}
 
-	return err
+	c.logger.Info().Str("recipient", recipient).Msg("Message and attachments sent to webhook")
+
+	return nil
 }
 
 // sendTo sends a message to a channel or a webhook URL. It returns an error if the message could not be sent.
@@ -72,6 +86,13 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 
 	conf.message = s.renderMessage(conf)
 
+	if conf.message == "" && len(conf.attachments) == 0 {
+		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")
+		return nil
+	}
+
+	s.logger.Debug().Msg("Sending message to all recipients")
+
 	for _, recipient := range s.recipients {
 		select {
 		case <-ctx.Done():
@@ -86,6 +107,8 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 			}
 		}
 	}
+
+	s.logger.Info().Msg("Message successfully sent to all recipients")
 
 	return nil
 }
