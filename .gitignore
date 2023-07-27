@@ -11,10 +11,26 @@ tmp/
 .env
 coverage.out
 cover.html
+TODO.md
 
-# Ignore everything in the service folder
-service/
+# Ignore playground folder; used for testing
+_playground/
 
-# Except the ones that are considered ready
-!service/discord
-!service/telegram
+# assuming the root folder you want to ignore is 'application'
+service/**
+
+# Explicitly track certain content nested in the 'application' folder:
+!service/discord/
+!service/discord/**
+
+!service/mail/
+!service/mail/**
+
+!service/ntfy/
+!service/ntfy/**
+
+!service/telegram/
+!service/telegram/**
+
+!service/slack/
+!service/slack/**
