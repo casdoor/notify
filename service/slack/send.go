@@ -108,6 +108,9 @@ func (s *Service) send(ctx context.Context, conf *SendConfig) error {
 // Send sends a notification to each Slack channel defined in Service. The sender is configured through SendOption and
 // SendConfig. Returns an error upon failure to send the message, or if there are no recipients identified.
 func (s *Service) Send(ctx context.Context, subject, message string, opts ...notify.SendOption) error {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	if len(s.channelIDs) == 0 {
 		return notify.ErrNoRecipients
 	}

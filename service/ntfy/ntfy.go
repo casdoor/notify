@@ -2,6 +2,7 @@ package ntfy
 
 import (
 	"net/http"
+	"sync"
 
 	"github.com/nikoksr/onelog"
 	nopadapter "github.com/nikoksr/onelog/adapter/nop"
@@ -66,6 +67,7 @@ type Service struct {
 	client *http.Client
 
 	name          string
+	mu            sync.RWMutex
 	logger        onelog.Logger
 	renderMessage func(conf *SendConfig) string
 
@@ -81,6 +83,14 @@ type Service struct {
 	clickAction string
 }
 
+func (s *Service) applyOptions(opts ...Option) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, opt := range opts {
+		opt(s)
+	}
+}
+
 // New creates a new ntfy service. It returns an error if the ntfy client could not be created.
 func New(token string, opts ...Option) (*Service, error) {
 	s := &Service{
@@ -94,9 +104,7 @@ func New(token string, opts ...Option) (*Service, error) {
 		priority:      PriorityDefault,
 	}
 
-	for _, opt := range opts {
-		opt(s)
-	}
+	s.applyOptions(opts...)
 
 	return s, nil
 }
@@ -108,6 +116,8 @@ func (s *Service) Name() string {
 
 // AddRecipients adds topics that should receive messages.
 func (s *Service) AddRecipients(topics ...string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.topics = append(s.topics, topics...)
 	s.logger.Info().Int("count", len(topics)).Int("total", len(s.topics)).Msg("Recipients added")
 }

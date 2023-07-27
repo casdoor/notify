@@ -2,6 +2,7 @@ package discord
 
 import (
 	"strings"
+	"sync"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/nikoksr/onelog"
@@ -66,6 +67,7 @@ type Service struct {
 	client client
 
 	name          string
+	mu            sync.RWMutex
 	logger        onelog.Logger
 	renderMessage func(conf *SendConfig) string
 
@@ -73,19 +75,25 @@ type Service struct {
 	recipients []string
 }
 
+func (s *Service) applyOptions(opts ...Option) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, opt := range opts {
+		opt(s)
+	}
+}
+
 func newService(client client, name string, opts ...Option) (*Service, error) {
-	svc := &Service{
+	s := &Service{
 		client:        client,
 		name:          name,
 		logger:        nopadapter.NewAdapter(),
 		renderMessage: defaultMessageRenderer,
 	}
 
-	for _, opt := range opts {
-		opt(svc)
-	}
+	s.applyOptions(opts...)
 
-	return svc, nil
+	return s, nil
 }
 
 // New creates a new Discord service using an OAuth2 token for authentication.
@@ -156,6 +164,8 @@ func (s *Service) Name() string {
 // AddRecipients takes Service channel IDs or webhook URLs and adds them to the list of recipients. You can add more
 // channel IDs or webhook URLs by calling AddRecipients again.
 func (s *Service) AddRecipients(recipients ...string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.recipients = append(s.recipients, recipients...)
 	s.logger.Info().Int("count", len(recipients)).Int("total", len(s.recipients)).Msg("Recipients added")
 }

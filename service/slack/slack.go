@@ -2,6 +2,7 @@ package slack
 
 import (
 	"strings"
+	"sync"
 
 	"github.com/nikoksr/onelog"
 	nopadapter "github.com/nikoksr/onelog/adapter/nop"
@@ -29,12 +30,21 @@ type Service struct {
 	client *slack.Client
 
 	name          string
+	mu            sync.RWMutex
 	logger        onelog.Logger
 	renderMessage func(conf *SendConfig) string
 
 	// Slack specific
 	channelIDs    []string
 	escapeMessage bool
+}
+
+func (s *Service) applyOptions(opts ...Option) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, opt := range opts {
+		opt(s)
+	}
 }
 
 // New creates a new instance of the Slack service with a default configuration. It receives as input the required Slack
@@ -51,9 +61,7 @@ func New(token string, opts ...Option) (*Service, error) {
 		renderMessage: defaultMessageRenderer,
 	}
 
-	for _, opt := range opts {
-		opt(s)
-	}
+	s.applyOptions(opts...)
 
 	return s, nil
 }
@@ -65,6 +73,8 @@ func (s *Service) Name() string {
 
 // AddRecipients appends given channel IDs onto an internal list that Send uses to distribute the notifications.
 func (s *Service) AddRecipients(channelIDs ...string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.channelIDs = append(s.channelIDs, channelIDs...)
 	s.logger.Info().Int("count", len(channelIDs)).Int("total", len(s.channelIDs)).Msg("Recipients added")
 }

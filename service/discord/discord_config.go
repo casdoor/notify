@@ -29,17 +29,17 @@ func WithLogger(logger onelog.Logger) Option {
 // WithRecipients sets the channel IDs or webhook URLs to send messages to. You can add more channel IDs or webhook URLs
 // by calling Service.AddRecipients.
 func WithRecipients(recipients ...string) Option {
-	return func(d *Service) {
-		d.recipients = recipients
-		d.logger.Info().Int("count", len(recipients)).Int("total", len(d.recipients)).Msg("Recipients set")
+	return func(s *Service) {
+		s.recipients = recipients
+		s.logger.Info().Int("count", len(recipients)).Int("total", len(s.recipients)).Msg("Recipients set")
 	}
 }
 
 // WithName sets the name of the service. The default is "discord".
 func WithName(name string) Option {
-	return func(d *Service) {
-		d.name = name
-		d.logger.Info().Str("name", name).Msg("Service name set")
+	return func(s *Service) {
+		s.name = name
+		s.logger.Info().Str("name", name).Msg("Service name set")
 	}
 }
 

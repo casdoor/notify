@@ -106,6 +106,9 @@ func (s *Service) send(ctx context.Context, conf *SendConfig) error {
 
 // Send takes a message subject and a message body and sends them to all previously set chats.
 func (s *Service) Send(ctx context.Context, subject, message string, opts ...notify.SendOption) error {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	if len(s.recipients) == 0 {
 		return notify.ErrNoRecipients
 	}

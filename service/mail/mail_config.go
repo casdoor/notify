@@ -17,6 +17,8 @@ type Option = func(*Service)
 // is provided.
 func WithServer(server *mail.SMTPServer) Option {
 	return func(s *Service) {
+		s.mu.Lock()
+		defer s.mu.Unlock()
 		s.server = server
 		s.logger.Info().Msg("Mail server set")
 	}
@@ -25,6 +27,8 @@ func WithServer(server *mail.SMTPServer) Option {
 // WithClient allows using a custom Mail client.
 func WithClient(client *mail.SMTPClient) Option {
 	return func(s *Service) {
+		s.mu.Lock()
+		defer s.mu.Unlock()
 		s.client = client
 		s.logger.Info().Msg("Mail client set")
 	}
@@ -33,6 +37,8 @@ func WithClient(client *mail.SMTPClient) Option {
 // WithRecipients sets the default recipients for the notifications on the service.
 func WithRecipients(recipients ...string) Option {
 	return func(s *Service) {
+		s.mu.Lock()
+		defer s.mu.Unlock()
 		s.recipients = recipients
 		s.logger.Info().Int("count", len(recipients)).Int("total", len(s.recipients)).Msg("Recipients set")
 	}
@@ -41,6 +47,8 @@ func WithRecipients(recipients ...string) Option {
 // WithCCRecipients sets the default CC recipients for the notifications on the service.
 func WithCCRecipients(recipients ...string) Option {
 	return func(s *Service) {
+		s.mu.Lock()
+		defer s.mu.Unlock()
 		s.ccRecipients = recipients
 		s.logger.Info().Int("count", len(recipients)).Int("total", len(s.ccRecipients)).Msg("CC recipients set")
 	}
@@ -49,6 +57,8 @@ func WithCCRecipients(recipients ...string) Option {
 // WithBCCRecipients sets the default BCC recipients for the notifications on the service.
 func WithBCCRecipients(recipients ...string) Option {
 	return func(s *Service) {
+		s.mu.Lock()
+		defer s.mu.Unlock()
 		s.bccRecipients = recipients
 		s.logger.Info().Int("count", len(recipients)).Int("total", len(s.bccRecipients)).Msg("BCC recipients set")
 	}
@@ -57,6 +67,8 @@ func WithBCCRecipients(recipients ...string) Option {
 // WithName sets an alternative name for the service.
 func WithName(name string) Option {
 	return func(s *Service) {
+		s.mu.Lock()
+		defer s.mu.Unlock()
 		s.name = name
 		s.logger.Info().Str("name", name).Msg("Service name set")
 	}
@@ -77,6 +89,8 @@ func WithName(name string) Option {
 //	})
 func WithMessageRenderer(builder func(conf *SendConfig) string) Option {
 	return func(s *Service) {
+		s.mu.Lock()
+		defer s.mu.Unlock()
 		s.renderMessage = builder
 		s.logger.Info().Msg("Message renderer set")
 	}
@@ -85,6 +99,8 @@ func WithMessageRenderer(builder func(conf *SendConfig) string) Option {
 // WithParseMode sets the parse mode for sending messages. The default is ModeHTML.
 func WithParseMode(mode Mode) Option {
 	return func(s *Service) {
+		s.mu.Lock()
+		defer s.mu.Unlock()
 		s.parseMode = mode
 		s.logger.Info().Int("mode", int(mode)).Msg("Parse mode set")
 	}
@@ -93,6 +109,8 @@ func WithParseMode(mode Mode) Option {
 // WithPriority sets the priority for sending messages. The default is PriorityNormal.
 func WithPriority(priority Priority) Option {
 	return func(s *Service) {
+		s.mu.Lock()
+		defer s.mu.Unlock()
 		s.priority = priority
 		s.logger.Info().Int("priority", int(priority)).Msg("Priority set")
 	}
@@ -101,6 +119,8 @@ func WithPriority(priority Priority) Option {
 // WithSenderName sets the sender name for the notifications on the service. The default is "From Notify <no-reply>".
 func WithSenderName(name string) Option {
 	return func(s *Service) {
+		s.mu.Lock()
+		defer s.mu.Unlock()
 		s.senderName = name
 		s.logger.Info().Str("name", name).Msg("Sender name set")
 	}
@@ -109,6 +129,8 @@ func WithSenderName(name string) Option {
 // WithInlineAttachments sets the inline attachments option on the Mail server. The default is false.
 func WithInlineAttachments(inline bool) Option {
 	return func(s *Service) {
+		s.mu.Lock()
+		defer s.mu.Unlock()
 		s.inlineAttachments = inline
 		s.logger.Info().Bool("inline", inline).Msg("Inline attachments set")
 	}
@@ -117,6 +139,8 @@ func WithInlineAttachments(inline bool) Option {
 // WithKeepAlive sets the keep alive option on the Mail server. KeepAlive is enabled by default.
 func WithKeepAlive(keepAlive bool) Option {
 	return func(s *Service) {
+		s.mu.Lock()
+		defer s.mu.Unlock()
 		s.server.KeepAlive = keepAlive
 		s.logger.Info().Bool("keepAlive", keepAlive).Msg("Keep alive set")
 	}
@@ -125,6 +149,8 @@ func WithKeepAlive(keepAlive bool) Option {
 // WithConnectTimeout sets the connect timeout option on the Mail server.
 func WithConnectTimeout(timeout time.Duration) Option {
 	return func(s *Service) {
+		s.mu.Lock()
+		defer s.mu.Unlock()
 		s.server.ConnectTimeout = timeout
 		s.logger.Info().Dur("timeout", timeout).Msg("Connect timeout set")
 	}
@@ -133,6 +159,8 @@ func WithConnectTimeout(timeout time.Duration) Option {
 // WithSendTimeout sets the send timeout option on the Mail server.
 func WithSendTimeout(timeout time.Duration) Option {
 	return func(s *Service) {
+		s.mu.Lock()
+		defer s.mu.Unlock()
 		s.server.SendTimeout = timeout
 		s.logger.Info().Dur("timeout", timeout).Msg("Send timeout set")
 	}
@@ -141,6 +169,8 @@ func WithSendTimeout(timeout time.Duration) Option {
 // WithEncryption sets the encryption option on the Mail server. The default is EncryptionNone.
 func WithEncryption(encryption mail.Encryption) Option {
 	return func(s *Service) {
+		s.mu.Lock()
+		defer s.mu.Unlock()
 		s.server.Encryption = encryption
 		s.logger.Info().Int("encryption", int(encryption)).Msg("Encryption set")
 	}
@@ -149,6 +179,8 @@ func WithEncryption(encryption mail.Encryption) Option {
 // WithTLSConfig sets the TLS config option on the Mail server.
 func WithTLSConfig(config *tls.Config) Option {
 	return func(s *Service) {
+		s.mu.Lock()
+		defer s.mu.Unlock()
 		s.server.TLSConfig = config
 		s.logger.Info().Msg("TLS config set")
 	}
@@ -158,6 +190,8 @@ func WithTLSConfig(config *tls.Config) Option {
 // necessary to change this.
 func WithAuthType(authentication mail.AuthType) Option {
 	return func(s *Service) {
+		s.mu.Lock()
+		defer s.mu.Unlock()
 		s.server.Authentication = authentication
 		s.logger.Info().Int("authentication", int(authentication)).Msg("Authentication set")
 	}
@@ -167,6 +201,8 @@ func WithAuthType(authentication mail.AuthType) Option {
 // sends to the server when the connection is established.
 func WithHelo(helo string) Option {
 	return func(s *Service) {
+		s.mu.Lock()
+		defer s.mu.Unlock()
 		s.server.Helo = helo
 		s.logger.Info().Str("helo", helo).Msg("HELO set")
 	}

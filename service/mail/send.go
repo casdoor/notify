@@ -81,6 +81,9 @@ func (s *Service) send(ctx context.Context, conf *SendConfig) error {
 // Send sends a notification to each Mail channel defined in Service. The sender is configured through SendOption and
 // SendConfig. Returns an error upon failure to send the message, or if there are no recipients identified.
 func (s *Service) Send(ctx context.Context, subject, message string, opts ...notify.SendOption) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	if len(s.recipients) == 0 {
 		return notify.ErrNoRecipients
 	}

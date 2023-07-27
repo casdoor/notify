@@ -1,6 +1,8 @@
 package mail
 
 import (
+	"sync"
+
 	"github.com/nikoksr/onelog"
 	nopadapter "github.com/nikoksr/onelog/adapter/nop"
 	mail "github.com/xhit/go-simple-mail/v2"
@@ -24,6 +26,7 @@ type (
 		client *mail.SMTPClient
 
 		name          string
+		mu            sync.RWMutex
 		logger        onelog.Logger
 		renderMessage func(conf *SendConfig) string
 
@@ -80,6 +83,14 @@ func newServer(host string, port int, username, password string) *mail.SMTPServe
 	return server
 }
 
+func (s *Service) applyOptions(opts ...Option) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, opt := range opts {
+		opt(s)
+	}
+}
+
 func New(host string, port int, username, password string, opts ...Option) (*Service, error) {
 	// Create a new Mail server
 	server := newServer(host, port, username, password)
@@ -94,9 +105,7 @@ func New(host string, port int, username, password string, opts ...Option) (*Ser
 		senderName:    "From Notify <no-reply>",
 	}
 
-	for _, opt := range opts {
-		opt(s)
-	}
+	s.applyOptions(opts...)
 
 	// Connect to the SMTP server and return the client
 	client, err := server.Connect()
@@ -117,18 +126,24 @@ func (s *Service) Name() string {
 
 // AddRecipients appends given channel IDs onto an internal list that Send uses to distribute the notifications.
 func (s *Service) AddRecipients(recipients ...string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.recipients = append(s.recipients, recipients...)
 	s.logger.Info().Int("count", len(recipients)).Int("total", len(s.recipients)).Msg("Recipients added")
 }
 
 // AddCCRecipients appends given channel IDs onto an internal list that Send uses to distribute the notifications.
 func (s *Service) AddCCRecipients(recipients ...string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.ccRecipients = append(s.ccRecipients, recipients...)
 	s.logger.Info().Int("count", len(recipients)).Int("total", len(s.ccRecipients)).Msg("CC Recipients added")
 }
 
 // AddBCCRecipients appends given channel IDs onto an internal list that Send uses to distribute the notifications.
 func (s *Service) AddBCCRecipients(recipients ...string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.bccRecipients = append(s.bccRecipients, recipients...)
 	s.logger.Info().Int("count", len(recipients)).Int("total", len(s.bccRecipients)).Msg("BCC Recipients added")
 }

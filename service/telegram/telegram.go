@@ -2,6 +2,7 @@ package telegram
 
 import (
 	"strings"
+	"sync"
 
 	telegram "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/nikoksr/onelog"
@@ -34,12 +35,21 @@ type Service struct {
 	client *telegram.BotAPI
 
 	name          string
+	mu            sync.RWMutex
 	logger        onelog.Logger
 	renderMessage func(conf *SendConfig) string
 
 	// Telegram specific
 	chatIDs   []int64
 	parseMode string
+}
+
+func (s *Service) applyOptions(opts ...Option) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, opt := range opts {
+		opt(s)
+	}
 }
 
 // New creates a new telegram service. It returns an error if the telegram client could not be created.
@@ -57,9 +67,7 @@ func New(token string, opts ...Option) (*Service, error) {
 		parseMode:     ModeMarkdown,
 	}
 
-	for _, opt := range opts {
-		opt(s)
-	}
+	s.applyOptions(opts...)
 
 	return s, nil
 }
@@ -71,6 +79,8 @@ func (s *Service) Name() string {
 
 // AddRecipients adds chat IDs that should receive messages.
 func (s *Service) AddRecipients(chatIDs ...int64) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.chatIDs = append(s.chatIDs, chatIDs...)
 	s.logger.Info().Int("count", len(chatIDs)).Int("total", len(s.chatIDs)).Msg("Recipients added")
 }

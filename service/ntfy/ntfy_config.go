@@ -29,7 +29,7 @@ func WithLogger(logger onelog.Logger) Option {
 // WithRecipients sets the topics that should receive messages. You can add more topics by calling AddRecipients.
 func WithRecipients(topics ...string) Option {
 	return func(s *Service) {
-		s.AddRecipients(topics...)
+		s.topics = topics
 		s.logger.Info().Int("count", len(topics)).Int("total", len(s.topics)).Msg("Recipients set")
 	}
 }

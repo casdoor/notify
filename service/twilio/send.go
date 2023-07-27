@@ -74,6 +74,9 @@ func (s *Service) send(ctx context.Context, conf *SendConfig) error {
 // Send sends a message to all chats that are configured to receive messages. It returns an error if the message could
 // not be sent.
 func (s *Service) Send(ctx context.Context, subject, message string, opts ...notify.SendOption) error {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	if len(s.phoneNumbers) == 0 {
 		return notify.ErrNoRecipients
 	}

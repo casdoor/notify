@@ -2,6 +2,7 @@ package twilio
 
 import (
 	"strings"
+	"sync"
 
 	"github.com/nikoksr/onelog"
 	nopadapter "github.com/nikoksr/onelog/adapter/nop"
@@ -27,12 +28,21 @@ type Service struct {
 	client *twilio.RestClient
 
 	name          string
+	mu            sync.RWMutex
 	logger        onelog.Logger
 	renderMessage func(conf *SendConfig) string
 
 	// Twilio specific
 	senderPhoneNumber string
 	phoneNumbers      []string
+}
+
+func (s *Service) applyOptions(opts ...Option) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, opt := range opts {
+		opt(s)
+	}
 }
 
 // Common function to create a new service
@@ -51,9 +61,7 @@ func newService(username, password, accountSid, phoneNumber string, opts ...Opti
 		senderPhoneNumber: phoneNumber,
 	}
 
-	for _, opt := range opts {
-		opt(s)
-	}
+	s.applyOptions(opts...)
 
 	return s, nil
 }
@@ -74,6 +82,8 @@ func (s *Service) Name() string {
 
 // AddRecipients adds phonenumbers that should receive messages.
 func (s *Service) AddRecipients(phoneNumbers ...string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.phoneNumbers = append(s.phoneNumbers, phoneNumbers...)
 	s.logger.Info().Int("count", len(phoneNumbers)).Int("total", len(s.phoneNumbers)).Msg("Recipients added")
 }
