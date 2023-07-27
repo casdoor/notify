@@ -9,25 +9,25 @@ type Option = func(*Service)
 
 // WithClient allows using a custom Slack client.
 func WithClient(client *slack.Client) Option {
-	return func(t *Service) {
-		t.client = client
-		t.logger.Info().Msg("Slack client set")
+	return func(s *Service) {
+		s.client = client
+		s.logger.Info().Msg("Slack client set")
 	}
 }
 
 // WithRecipients sets the default recipients for the notifications on the service.
 func WithRecipients(channelIDs ...string) Option {
-	return func(t *Service) {
-		t.channelIDs = channelIDs
-		t.logger.Info().Int("count", len(channelIDs)).Int("total", len(t.channelIDs)).Msg("Recipients set")
+	return func(s *Service) {
+		s.channelIDs = channelIDs
+		s.logger.Info().Int("count", len(channelIDs)).Int("total", len(s.channelIDs)).Msg("Recipients set")
 	}
 }
 
 // WithName sets an alternative name for the service.
 func WithName(name string) Option {
-	return func(t *Service) {
-		t.name = name
-		t.logger.Info().Str("name", name).Msg("Service name set")
+	return func(s *Service) {
+		s.name = name
+		s.logger.Info().Str("name", name).Msg("Service name set")
 	}
 }
 
@@ -45,16 +45,16 @@ func WithName(name string) Option {
 //		return builder.String()
 //	})
 func WithMessageRenderer(builder func(conf SendConfig) string) Option {
-	return func(t *Service) {
-		t.renderMessage = builder
-		t.logger.Info().Msg("Message renderer set")
+	return func(s *Service) {
+		s.renderMessage = builder
+		s.logger.Info().Msg("Message renderer set")
 	}
 }
 
 // WithEscapeMessage sets whether messages should be escaped or not before sending.
 func WithEscapeMessage(escapeMessage bool) Option {
-	return func(t *Service) {
-		t.escapeMessage = escapeMessage
-		t.logger.Info().Bool("escapeMessage", escapeMessage).Msg("Escape message set")
+	return func(s *Service) {
+		s.escapeMessage = escapeMessage
+		s.logger.Info().Bool("escapeMessage", escapeMessage).Msg("Escape message set")
 	}
 }

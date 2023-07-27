@@ -57,8 +57,8 @@ func WithName(name string) Option {
 //		return builder.String()
 //	})
 func WithMessageRenderer(builder func(conf SendConfig) string) Option {
-	return func(t *Service) {
-		t.renderMessage = builder
-		t.logger.Info().Msg("Message renderer set")
+	return func(s *Service) {
+		s.renderMessage = builder
+		s.logger.Info().Msg("Message renderer set")
 	}
 }
