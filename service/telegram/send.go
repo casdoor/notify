@@ -10,7 +10,7 @@ import (
 
 // sendToChat sends a message to a chat. It returns an error if the message could not be sent.
 func (s *Service) sendToChat(chatID int64, conf SendConfig) error {
-	if len(conf.attachments) == 0 {
+	if len(conf.Attachments) == 0 {
 		return s.sendTextMessage(chatID, conf)
 	}
 
@@ -21,8 +21,8 @@ func (s *Service) sendToChat(chatID int64, conf SendConfig) error {
 func (s *Service) sendTextMessage(chatID int64, conf SendConfig) error {
 	s.logger.Debug().Int64("recipient", chatID).Msg("Sending text message to chat")
 
-	message := telegram.NewMessage(chatID, conf.message)
-	message.ParseMode = conf.parseMode
+	message := telegram.NewMessage(chatID, conf.Message)
+	message.ParseMode = conf.ParseMode
 
 	if _, err := s.client.Send(message); err != nil {
 		return err
@@ -35,7 +35,7 @@ func (s *Service) sendTextMessage(chatID int64, conf SendConfig) error {
 
 // sendFileAttachments sends file attachments
 func (s *Service) sendFileAttachments(chatID int64, conf SendConfig) error {
-	for idx, attachment := range conf.attachments {
+	for idx, attachment := range conf.Attachments {
 		isFirst := idx == 0
 		if err := s.sendFile(chatID, conf, isFirst, attachment); err != nil {
 			return err
@@ -56,8 +56,8 @@ func (s *Service) sendFile(chatID int64, conf SendConfig, isFirst bool, attachme
 
 	// Set caption only for the first file
 	if isFirst {
-		document.Caption = conf.message
-		document.ParseMode = conf.parseMode
+		document.Caption = conf.Message
+		document.ParseMode = conf.ParseMode
 	}
 
 	if _, err := s.client.Send(document); err != nil {
@@ -77,18 +77,18 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 	}
 
 	conf := SendConfig{
-		parseMode: s.parseMode,
-		subject:   subject,
-		message:   message,
+		ParseMode: s.parseMode,
+		Subject:   subject,
+		Message:   message,
 	}
 
 	for _, opt := range opts {
 		opt(&conf)
 	}
 
-	conf.message = s.renderMessage(conf)
+	conf.Message = s.renderMessage(conf)
 
-	if conf.message == "" && len(conf.attachments) == 0 {
+	if conf.Message == "" && len(conf.Attachments) == 0 {
 		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")
 		return nil
 	}

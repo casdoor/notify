@@ -58,7 +58,7 @@ const (
 )
 
 func defaultMessageRenderer(conf SendConfig) string {
-	return conf.message
+	return conf.Message
 }
 
 // Service is the ntfy service. It is used to send messages to Ntfy chats.

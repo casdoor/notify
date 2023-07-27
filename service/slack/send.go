@@ -19,7 +19,7 @@ func (s *Service) sendFile(ctx context.Context, channelID string, conf SendConfi
 	}
 
 	if isFirst {
-		params.InitialComment = conf.message
+		params.InitialComment = conf.Message
 	}
 
 	if _, err := s.client.UploadFileV2Context(ctx, params); err != nil {
@@ -32,7 +32,7 @@ func (s *Service) sendFile(ctx context.Context, channelID string, conf SendConfi
 }
 
 func (s *Service) sendFileAttachments(ctx context.Context, channelID string, conf SendConfig) error {
-	for idx, attachment := range conf.attachments {
+	for idx, attachment := range conf.Attachments {
 		isFirst := idx == 0
 		if err := s.sendFile(ctx, channelID, conf, isFirst, attachment); err != nil {
 			return err
@@ -45,7 +45,7 @@ func (s *Service) sendFileAttachments(ctx context.Context, channelID string, con
 func (s *Service) sendTextMessage(ctx context.Context, channelID string, conf SendConfig) error {
 	s.logger.Debug().Str("recipient", channelID).Msg("Sending text message to channel")
 
-	if _, _, err := s.client.PostMessageContext(ctx, channelID, slack.MsgOptionText(conf.message, conf.escapeMessage)); err != nil {
+	if _, _, err := s.client.PostMessageContext(ctx, channelID, slack.MsgOptionText(conf.Message, conf.EscapeMessage)); err != nil {
 		return err
 	}
 
@@ -57,7 +57,7 @@ func (s *Service) sendTextMessage(ctx context.Context, channelID string, conf Se
 // sendToChannel sends a message to a specific channel utilizing the SendConfig settings. If no message or attachments
 // are defined, the function will return without error.
 func (s *Service) sendToChannel(ctx context.Context, channelID string, conf SendConfig) error {
-	if len(conf.attachments) == 0 {
+	if len(conf.Attachments) == 0 {
 		return s.sendTextMessage(ctx, channelID, conf)
 	}
 
@@ -72,18 +72,18 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 	}
 
 	conf := SendConfig{
-		subject:       subject,
-		message:       message,
-		escapeMessage: s.escapeMessage,
+		Subject:       subject,
+		Message:       message,
+		EscapeMessage: s.escapeMessage,
 	}
 
 	for _, opt := range opts {
 		opt(&conf)
 	}
 
-	conf.message = s.renderMessage(conf)
+	conf.Message = s.renderMessage(conf)
 
-	if conf.message == "" && len(conf.attachments) == 0 {
+	if conf.Message == "" && len(conf.Attachments) == 0 {
 		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")
 		return nil
 	}

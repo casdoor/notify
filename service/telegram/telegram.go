@@ -22,9 +22,9 @@ const (
 func defaultMessageRenderer(conf SendConfig) string {
 	var builder strings.Builder
 
-	builder.WriteString(conf.subject)
+	builder.WriteString(conf.Subject)
 	builder.WriteString("\n\n")
-	builder.WriteString(conf.message)
+	builder.WriteString(conf.Message)
 
 	return builder.String()
 }

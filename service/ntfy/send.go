@@ -28,13 +28,13 @@ func (s *Service) sendTextMessage(ctx context.Context, topic string, conf SendCo
 
 	payload := &sendMessageRequest{
 		Topic:       topic,
-		Title:       conf.subject,
-		Message:     conf.message,
-		Tags:        conf.tags,
-		Priority:    conf.priority,
-		ClickAction: conf.clickAction,
-		Markdown:    conf.parseMode == ModeMarkdown,
-		Delay:       conf.delay,
+		Title:       conf.Subject,
+		Message:     conf.Message,
+		Tags:        conf.Tags,
+		Priority:    conf.Priority,
+		ClickAction: conf.ClickAction,
+		Markdown:    conf.ParseMode == ModeMarkdown,
+		Delay:       conf.Delay,
 	}
 
 	payloadJSON, err := json.Marshal(payload)
@@ -83,7 +83,7 @@ func (s *Service) sendFile(ctx context.Context, topic string, attachment notify.
 }
 
 func (s *Service) sendFileAttachments(ctx context.Context, topic string, conf SendConfig) error {
-	for _, attachment := range conf.attachments {
+	for _, attachment := range conf.Attachments {
 		if err := s.sendFile(ctx, topic, attachment); err != nil {
 			return err
 		}
@@ -108,22 +108,22 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 	}
 
 	conf := SendConfig{
-		subject:     subject,
-		message:     message,
-		parseMode:   s.parseMode,
-		priority:    s.priority,
-		tags:        s.tags,
-		delay:       s.delay,
-		clickAction: s.clickAction,
+		Subject:     subject,
+		Message:     message,
+		ParseMode:   s.parseMode,
+		Priority:    s.priority,
+		Tags:        s.tags,
+		Delay:       s.delay,
+		ClickAction: s.clickAction,
 	}
 
 	for _, opt := range opts {
 		opt(&conf)
 	}
 
-	conf.message = s.renderMessage(conf)
+	conf.Message = s.renderMessage(conf)
 
-	if conf.message == "" && len(conf.attachments) == 0 {
+	if conf.Message == "" && len(conf.Attachments) == 0 {
 		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")
 		return nil
 	}

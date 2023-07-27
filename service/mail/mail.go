@@ -56,7 +56,7 @@ const (
 
 // defaultMessageRenderer is a helper function to format messages for Mail.
 func defaultMessageRenderer(conf SendConfig) string {
-	return conf.message
+	return conf.Message
 }
 
 // newServer creates a new Mail server from the given parameters. It also uses the following default values:

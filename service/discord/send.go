@@ -15,11 +15,11 @@ func (c *authClient) sendTo(recipient string, conf SendConfig) error {
 	c.logger.Debug().Str("recipient", recipient).Msg("Sending message and attachments to channel")
 
 	// Convert notify.Attachment to discordgo.File.
-	files := attachmentsToFiles(conf.attachments)
+	files := attachmentsToFiles(conf.Attachments)
 
 	// Send message and attachments.
 	_, err := c.session.ChannelMessageSendComplex(recipient, &discordgo.MessageSend{
-		Content: conf.message,
+		Content: conf.Message,
 		Files:   files,
 	})
 	if err != nil {
@@ -49,10 +49,10 @@ func (c *webhookClient) sendTo(recipient string, conf SendConfig) error {
 	webhookToken := segments[len(segments)-1]
 
 	// Convert notify.Attachment to discordgo.File.
-	files := attachmentsToFiles(conf.attachments)
+	files := attachmentsToFiles(conf.Attachments)
 
 	_, err = c.session.WebhookExecute(webhookID, webhookToken, false, &discordgo.WebhookParams{
-		Content: conf.message,
+		Content: conf.Message,
 		Files:   files,
 	})
 	if err != nil {
@@ -76,17 +76,17 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 	}
 
 	conf := SendConfig{
-		subject: subject,
-		message: message,
+		Subject: subject,
+		Message: message,
 	}
 
 	for _, opt := range opts {
 		opt(&conf)
 	}
 
-	conf.message = s.renderMessage(conf)
+	conf.Message = s.renderMessage(conf)
 
-	if conf.message == "" && len(conf.attachments) == 0 {
+	if conf.Message == "" && len(conf.Attachments) == 0 {
 		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")
 		return nil
 	}

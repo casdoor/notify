@@ -4,57 +4,35 @@ import "github.com/nikoksr/notify/v2"
 
 var _ notify.SendConfig = (*SendConfig)(nil)
 
-// SendConfig is the configuration for sending a message. It implements the
-// notify.SendConfig interface.
+// SendConfig represents the configuration needed for sending a message.
+//
+// This struct complies with the notify.SendConfig interface and allows you to alter
+// the behavior of the send function. This can be achieved by either passing send options
+// to the send function or by manipulating the fields of this struct in your custom
+// message renderer.
+//
+// All fields of this struct are exported to offer maximum flexibility to users.
+// However, users must be aware that they are responsible for managing thread-safety
+// and other similar concerns when manipulating these fields directly.
 type SendConfig struct {
-	subject     string
-	message     string
-	attachments []notify.Attachment
-	metadata    map[string]any
+	Subject     string
+	Message     string
+	Attachments []notify.Attachment
+	Metadata    map[string]any
 
-	// Custom fields
-	parseMode string
+	// Telegram specific fields
+
+	ParseMode string
 }
-
-// Common fields
-
-// Subject returns the subject of the message.
-func (c *SendConfig) Subject() string {
-	return c.subject
-}
-
-// Message returns the message.
-func (c *SendConfig) Message() string {
-	return c.message
-}
-
-// Attachments returns the attachments.
-func (c *SendConfig) Attachments() []notify.Attachment {
-	return c.attachments
-}
-
-// Metadata returns the metadata.
-func (c *SendConfig) Metadata() map[string]any {
-	return c.metadata
-}
-
-// Telegram specific fields
-
-// ParseMode returns the parse mode of the message. This is a Telegram specific option.
-func (c *SendConfig) ParseMode() string {
-	return c.parseMode
-}
-
-// notify.SendConfig implementation
 
 // SetAttachments adds attachments to the message. This method is needed as part of the notify.SendConfig interface.
 func (c *SendConfig) SetAttachments(attachments ...notify.Attachment) {
-	c.attachments = attachments
+	c.Attachments = attachments
 }
 
 // SetMetadata sets the metadata of the message. This method is needed as part of the notify.SendConfig interface.
 func (c *SendConfig) SetMetadata(metadata map[string]any) {
-	c.metadata = metadata
+	c.Metadata = metadata
 }
 
 // Send options
@@ -63,7 +41,7 @@ func (c *SendConfig) SetMetadata(metadata map[string]any) {
 func SendWithParseMode(parseMode string) notify.SendOption {
 	return func(config notify.SendConfig) {
 		if typedConf, ok := config.(*SendConfig); ok {
-			typedConf.parseMode = parseMode
+			typedConf.ParseMode = parseMode
 		}
 	}
 }

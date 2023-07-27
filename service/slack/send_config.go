@@ -2,61 +2,37 @@ package slack
 
 import "github.com/nikoksr/notify/v2"
 
-// Compile time check to make sure the struct implements the notify.SendConfig interface.
 var _ notify.SendConfig = (*SendConfig)(nil)
 
-// SendConfig constructs the configuration for sending notifications over Slack and the struct implements the
-// notify.SendConfig interface. It facilitates features such as subject, message, attachments and metadata. Slack-
-// specific fields are also accommodated.
+// SendConfig represents the configuration needed for sending a message.
+//
+// This struct complies with the notify.SendConfig interface and allows you to alter
+// the behavior of the send function. This can be achieved by either passing send options
+// to the send function or by manipulating the fields of this struct in your custom
+// message renderer.
+//
+// All fields of this struct are exported to offer maximum flexibility to users.
+// However, users must be aware that they are responsible for managing thread-safety
+// and other similar concerns when manipulating these fields directly.
 type SendConfig struct {
-	subject     string
-	message     string
-	attachments []notify.Attachment
-	metadata    map[string]any
+	Subject     string
+	Message     string
+	Attachments []notify.Attachment
+	Metadata    map[string]any
 
 	// Slack specific fields
-	escapeMessage bool
+
+	EscapeMessage bool
 }
-
-// Common fields
-
-// Subject returns the subject of the message.
-func (c *SendConfig) Subject() string {
-	return c.subject
-}
-
-// Message returns the message.
-func (c *SendConfig) Message() string {
-	return c.message
-}
-
-// Attachments returns the attachments.
-func (c *SendConfig) Attachments() []notify.Attachment {
-	return c.attachments
-}
-
-// Metadata returns the metadata.
-func (c *SendConfig) Metadata() map[string]any {
-	return c.metadata
-}
-
-// Slack specific fields
-
-// EscapeMessage is a function to determine whether the message content should be escaped or not.
-func (c *SendConfig) EscapeMessage() bool {
-	return c.escapeMessage
-}
-
-// notify.SendConfig implementation
 
 // SetAttachments adds attachments to the message. This method is needed as part of the notify.SendConfig interface.
 func (c *SendConfig) SetAttachments(attachments ...notify.Attachment) {
-	c.attachments = attachments
+	c.Attachments = attachments
 }
 
 // SetMetadata sets the metadata of the message. This method is needed as part of the notify.SendConfig interface.
 func (c *SendConfig) SetMetadata(metadata map[string]any) {
-	c.metadata = metadata
+	c.Metadata = metadata
 }
 
 // Send options
@@ -65,7 +41,7 @@ func (c *SendConfig) SetMetadata(metadata map[string]any) {
 func SendWithEscapeMessage(escapeMessage bool) notify.SendOption {
 	return func(c notify.SendConfig) {
 		if conf, ok := c.(*SendConfig); ok {
-			conf.escapeMessage = escapeMessage
+			conf.EscapeMessage = escapeMessage
 		}
 	}
 }

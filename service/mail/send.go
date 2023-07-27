@@ -17,17 +17,17 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 	}
 
 	conf := SendConfig{
-		subject: subject,
-		message: message,
+		Subject: subject,
+		Message: message,
 	}
 
 	for _, opt := range opts {
 		opt(&conf)
 	}
 
-	conf.message = s.renderMessage(conf)
+	conf.Message = s.renderMessage(conf)
 
-	if conf.message == "" && len(conf.attachments) == 0 {
+	if conf.Message == "" && len(conf.Attachments) == 0 {
 		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")
 		return nil
 	}
@@ -40,12 +40,12 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 		AddBcc(s.bccRecipients...).
 		SetPriority(mail.Priority(s.priority)).
 		SetSubject(subject).
-		SetBody(mail.ContentType(conf.parseMode),
+		SetBody(mail.ContentType(conf.ParseMode),
 			message,
 		)
 
 	// Add attachments
-	for _, attachment := range conf.attachments {
+	for _, attachment := range conf.Attachments {
 		s.logger.Debug().Str("attachment", attachment.Name()).Msg("Adding attachment")
 
 		buf := new(bytes.Buffer)
@@ -56,7 +56,7 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 		email.Attach(&mail.File{
 			Name:   attachment.Name(),
 			Data:   buf.Bytes(),
-			Inline: conf.inlineAttachments,
+			Inline: conf.InlineAttachments,
 		})
 
 		s.logger.Info().Str("attachment", attachment.Name()).Msg("Attachment added")
