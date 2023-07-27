@@ -59,12 +59,12 @@ func main() {
 	// Create the actual notify instance and pass the telegram service to it. Again, we're making use of the new constructor
 	// option WithServices() to specify the services. UseServices() is still available and can be used to add services later
 	// on.
-    n := notify.New(
+    dispatcher := notify.New(
         notify.WithServices(svc),
     )
 
 	// Send a notification
-    _ = n.Send(context.Background(),
+    _ = dispatcher.Send(context.Background(),
         "Subject/Title",
         "The actual message - Hello, you awesome gophers! :)",
     )
@@ -130,6 +130,10 @@ func customRenderer(conf discord.SendConfig) string {
     return builder.String()
 }
 ```
+
+> Also note that we're using a `Dispatcher` in the first example, which allows us to send notifications to multiple
+> services at once. In the second example, we're using a `Service` directly, which only allows us to send notifications
+> to a single service.
 
 ## Contributing <a id="contributing"></a>
 
