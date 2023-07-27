@@ -29,8 +29,11 @@ service/**
 !service/ntfy/
 !service/ntfy/**
 
+!service/slack/
+!service/slack/**
+
 !service/telegram/
 !service/telegram/**
 
-!service/slack/
-!service/slack/**
+!service/twilio/
+!service/twilio/**
