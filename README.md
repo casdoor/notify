@@ -148,6 +148,7 @@ Yes, please! Contributions of all kinds are very welcome! Feel free to check our
 | [Ntfy](https://ntfy.sh)                     | [service/ntfy](service/ntfy)         | -                                                                                               | :heavy_check_mark: |
 | [Slack](https://slack.com)                  | [service/slack](service/slack)       | [slack-go/slack](https://github.com/slack-go/slack)                                             |        :x:         |
 | [Telegram](https://telegram.org)            | [service/telegram](service/telegram) | [go-telegram-bot-api/telegram-bot-api](https://github.com/go-telegram-bot-api/telegram-bot-api) | :heavy_check_mark: |
+| [Twilio](https://twilio.com)                | [service/twilio](service/twilio)     | [twilio/twilio-go](https://github.com/twilio/twilio-go)                                         |        :x:         |
 
 ## Special Thanks <a id="special_thanks"></a>
 
