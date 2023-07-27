@@ -52,6 +52,13 @@ func Default() *Notify {
 	return defaultNotify
 }
 
+// SetDefault sets the package-level Notify instance to the given Notify instance. Nil values are ignored.
+func SetDefault(n *Notify) {
+	if n != nil {
+		defaultNotify = n
+	}
+}
+
 // UseServices appends the given service(s) to the Notify instance's services list. Nil services are ignored.
 func (n *Notify) UseServices(services ...Service) {
 	for _, svc := range services {
