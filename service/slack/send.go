@@ -8,7 +8,7 @@ import (
 	"github.com/nikoksr/notify/v2"
 )
 
-func (s *Service) sendFile(ctx context.Context, channelID string, conf SendConfig, isFirst bool, attachment notify.Attachment) error {
+func (s *Service) sendFile(ctx context.Context, channelID string, conf *SendConfig, isFirst bool, attachment notify.Attachment) error {
 	s.logger.Debug().Str("recipient", channelID).Str("file", attachment.Name()).Msg("Sending file to channel")
 
 	params := slack.UploadFileV2Parameters{
@@ -31,7 +31,7 @@ func (s *Service) sendFile(ctx context.Context, channelID string, conf SendConfi
 	return nil
 }
 
-func (s *Service) sendFileAttachments(ctx context.Context, channelID string, conf SendConfig) error {
+func (s *Service) sendFileAttachments(ctx context.Context, channelID string, conf *SendConfig) error {
 	for idx, attachment := range conf.Attachments {
 		isFirst := idx == 0
 		if err := s.sendFile(ctx, channelID, conf, isFirst, attachment); err != nil {
@@ -42,7 +42,7 @@ func (s *Service) sendFileAttachments(ctx context.Context, channelID string, con
 	return nil
 }
 
-func (s *Service) sendTextMessage(ctx context.Context, channelID string, conf SendConfig) error {
+func (s *Service) sendTextMessage(ctx context.Context, channelID string, conf *SendConfig) error {
 	s.logger.Debug().Str("recipient", channelID).Msg("Sending text message to channel")
 
 	if _, _, err := s.client.PostMessageContext(ctx, channelID, slack.MsgOptionText(conf.Message, conf.EscapeMessage)); err != nil {
@@ -56,7 +56,7 @@ func (s *Service) sendTextMessage(ctx context.Context, channelID string, conf Se
 
 // sendToChannel sends a message to a specific channel utilizing the SendConfig settings. If no message or attachments
 // are defined, the function will return without error.
-func (s *Service) sendToChannel(ctx context.Context, channelID string, conf SendConfig) error {
+func (s *Service) sendToChannel(ctx context.Context, channelID string, conf *SendConfig) error {
 	if len(conf.Attachments) == 0 {
 		return s.sendTextMessage(ctx, channelID, conf)
 	}
@@ -64,30 +64,25 @@ func (s *Service) sendToChannel(ctx context.Context, channelID string, conf Send
 	return s.sendFileAttachments(ctx, channelID, conf)
 }
 
-// Send sends a notification to each Slack channel defined in Service. The sender is configured through SendOption and
-// SendConfig. Returns an error upon failure to send the message, or if there are no recipients identified.
-func (s *Service) Send(ctx context.Context, subject, message string, opts ...notify.SendOption) error {
-	if len(s.channelIDs) == 0 {
-		return notify.ErrNoRecipients
-	}
-
-	conf := SendConfig{
+// newSendConfig creates a new send config with default values.
+func (s *Service) newSendConfig(subject, message string, opts ...notify.SendOption) *SendConfig {
+	conf := &SendConfig{
 		Subject:       subject,
 		Message:       message,
 		EscapeMessage: s.escapeMessage,
 	}
 
 	for _, opt := range opts {
-		opt(&conf)
+		opt(conf)
 	}
 
 	conf.Message = s.renderMessage(conf)
 
-	if conf.Message == "" && len(conf.Attachments) == 0 {
-		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")
-		return nil
-	}
+	return conf
+}
 
+// send sends a message to all recipients. It returns an error if the message could not be sent.
+func (s *Service) send(ctx context.Context, conf *SendConfig) error {
 	s.logger.Debug().Msg("Sending message to all recipients")
 
 	for _, channelID := range s.channelIDs {
@@ -108,4 +103,23 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 	s.logger.Info().Msg("Message successfully sent to all recipients")
 
 	return nil
+}
+
+// Send sends a notification to each Slack channel defined in Service. The sender is configured through SendOption and
+// SendConfig. Returns an error upon failure to send the message, or if there are no recipients identified.
+func (s *Service) Send(ctx context.Context, subject, message string, opts ...notify.SendOption) error {
+	if len(s.channelIDs) == 0 {
+		return notify.ErrNoRecipients
+	}
+
+	// Create new send config from service's default values and passed options
+	conf := s.newSendConfig(subject, message, opts...)
+
+	if conf.Message == "" && len(conf.Attachments) == 0 {
+		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")
+		return nil
+	}
+
+	// Send message to all recipients
+	return s.send(ctx, conf)
 }

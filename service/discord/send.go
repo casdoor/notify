@@ -11,7 +11,7 @@ import (
 	"github.com/nikoksr/notify/v2"
 )
 
-func (c *authClient) sendTo(recipient string, conf SendConfig) error {
+func (c *authClient) sendTo(recipient string, conf *SendConfig) error {
 	c.logger.Debug().Str("recipient", recipient).Msg("Sending message and attachments to channel")
 
 	// Convert notify.Attachment to discordgo.File.
@@ -31,7 +31,7 @@ func (c *authClient) sendTo(recipient string, conf SendConfig) error {
 	return nil
 }
 
-func (c *webhookClient) sendTo(recipient string, conf SendConfig) error {
+func (c *webhookClient) sendTo(recipient string, conf *SendConfig) error {
 	c.logger.Debug().Str("recipient", recipient).Msg("Sending message and attachments to webhook")
 
 	// Parse the recipient string as a webhook URL.
@@ -64,33 +64,24 @@ func (c *webhookClient) sendTo(recipient string, conf SendConfig) error {
 	return nil
 }
 
-// sendTo sends a message to a channel or a webhook URL. It returns an error if the message could not be sent.
-func (s *Service) sendTo(_ context.Context, recipient string, conf SendConfig) error {
-	return s.client.sendTo(recipient, conf)
-}
-
-// Send takes a message subject and a message body and sends them to all previously set chats.
-func (s *Service) Send(ctx context.Context, subject, message string, opts ...notify.SendOption) error {
-	if len(s.recipients) == 0 {
-		return notify.ErrNoRecipients
-	}
-
-	conf := SendConfig{
+// newSendConfig creates a new send config with default values.
+func (s *Service) newSendConfig(subject, message string, opts ...notify.SendOption) *SendConfig {
+	conf := &SendConfig{
 		Subject: subject,
 		Message: message,
 	}
 
 	for _, opt := range opts {
-		opt(&conf)
+		opt(conf)
 	}
 
 	conf.Message = s.renderMessage(conf)
 
-	if conf.Message == "" && len(conf.Attachments) == 0 {
-		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")
-		return nil
-	}
+	return conf
+}
 
+// send sends a message to all recipients. It returns an error if the message could not be sent.
+func (s *Service) send(ctx context.Context, conf *SendConfig) error {
 	s.logger.Debug().Msg("Sending message to all recipients")
 
 	for _, recipient := range s.recipients {
@@ -100,7 +91,7 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 		default:
 		}
 
-		if err := s.sendTo(ctx, recipient, conf); err != nil {
+		if err := s.client.sendTo(recipient, conf); err != nil {
 			return &notify.SendNotificationError{
 				Recipient: recipient,
 				Cause:     asNotifyError(err),
@@ -111,4 +102,22 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 	s.logger.Info().Msg("Message successfully sent to all recipients")
 
 	return nil
+}
+
+// Send takes a message subject and a message body and sends them to all previously set chats.
+func (s *Service) Send(ctx context.Context, subject, message string, opts ...notify.SendOption) error {
+	if len(s.recipients) == 0 {
+		return notify.ErrNoRecipients
+	}
+
+	// Create new send config from service's default values and passed options
+	conf := s.newSendConfig(subject, message, opts...)
+
+	if conf.Message == "" && len(conf.Attachments) == 0 {
+		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")
+		return nil
+	}
+
+	// Send message to all recipients
+	return s.send(ctx, conf)
 }

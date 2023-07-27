@@ -23,7 +23,7 @@ func sendRequest(client *http.Client, req *http.Request) error {
 	return nil
 }
 
-func (s *Service) sendTextMessage(ctx context.Context, topic string, conf SendConfig) error {
+func (s *Service) sendTextMessage(ctx context.Context, topic string, conf *SendConfig) error {
 	s.logger.Debug().Str("topic", topic).Msg("Sending text message to topic")
 
 	payload := &sendMessageRequest{
@@ -82,7 +82,7 @@ func (s *Service) sendFile(ctx context.Context, topic string, attachment notify.
 	return nil
 }
 
-func (s *Service) sendFileAttachments(ctx context.Context, topic string, conf SendConfig) error {
+func (s *Service) sendFileAttachments(ctx context.Context, topic string, conf *SendConfig) error {
 	for _, attachment := range conf.Attachments {
 		if err := s.sendFile(ctx, topic, attachment); err != nil {
 			return err
@@ -92,7 +92,7 @@ func (s *Service) sendFileAttachments(ctx context.Context, topic string, conf Se
 	return nil
 }
 
-func (s *Service) sendToTopic(ctx context.Context, topic string, conf SendConfig) error {
+func (s *Service) sendToTopic(ctx context.Context, topic string, conf *SendConfig) error {
 	if err := s.sendTextMessage(ctx, topic, conf); err != nil {
 		return err
 	}
@@ -100,14 +100,9 @@ func (s *Service) sendToTopic(ctx context.Context, topic string, conf SendConfig
 	return s.sendFileAttachments(ctx, topic, conf)
 }
 
-// Send sends a message to all topics that are configured to receive messages. It returns an error if the message could
-// not be sent.
-func (s *Service) Send(ctx context.Context, subject, message string, opts ...notify.SendOption) error {
-	if len(s.topics) == 0 {
-		return notify.ErrNoRecipients
-	}
-
-	conf := SendConfig{
+// newSendConfig creates a new send config with default values.
+func (s *Service) newSendConfig(subject, message string, opts ...notify.SendOption) *SendConfig {
+	conf := &SendConfig{
 		Subject:     subject,
 		Message:     message,
 		ParseMode:   s.parseMode,
@@ -118,17 +113,17 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 	}
 
 	for _, opt := range opts {
-		opt(&conf)
+		opt(conf)
 	}
 
 	conf.Message = s.renderMessage(conf)
 
-	if conf.Message == "" && len(conf.Attachments) == 0 {
-		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")
-		return nil
-	}
+	return conf
+}
 
-	s.logger.Debug().Msg("Sending message to topics")
+// send sends a message to all recipients. It returns an error if the message could not be sent.
+func (s *Service) send(ctx context.Context, conf *SendConfig) error {
+	s.logger.Debug().Msg("Sending message to recipients")
 
 	for _, topic := range s.topics {
 		select {
@@ -145,7 +140,26 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 		}
 	}
 
-	s.logger.Info().Msg("Message successfully sent to all topics")
+	s.logger.Info().Msg("Message successfully sent to all recipients")
 
 	return nil
+}
+
+// Send sends a message to all topics that are configured to receive messages. It returns an error if the message could
+// not be sent.
+func (s *Service) Send(ctx context.Context, subject, message string, opts ...notify.SendOption) error {
+	if len(s.topics) == 0 {
+		return notify.ErrNoRecipients
+	}
+
+	// Create new send config from service's default values and passed options
+	conf := s.newSendConfig(subject, message, opts...)
+
+	if conf.Message == "" && len(conf.Attachments) == 0 {
+		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")
+		return nil
+	}
+
+	// Send message to all recipients
+	return s.send(ctx, conf)
 }

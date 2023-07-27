@@ -23,14 +23,14 @@ type (
 		server *mail.SMTPServer
 		client *mail.SMTPClient
 
-		logger        onelog.Logger
-		recipients    []string
-		ccRecipients  []string
-		bccRecipients []string
 		name          string
-		renderMessage func(conf SendConfig) string
+		logger        onelog.Logger
+		renderMessage func(conf *SendConfig) string
 
-		// Mail specific fields
+		// Mail specific
+		recipients        []string
+		ccRecipients      []string
+		bccRecipients     []string
 		parseMode         Mode
 		priority          Priority
 		senderName        string
@@ -55,7 +55,7 @@ const (
 )
 
 // defaultMessageRenderer is a helper function to format messages for Mail.
-func defaultMessageRenderer(conf SendConfig) string {
+func defaultMessageRenderer(conf *SendConfig) string {
 	return conf.Message
 }
 
@@ -86,8 +86,8 @@ func New(host string, port int, username, password string, opts ...Option) (*Ser
 
 	s := &Service{
 		server:        server,
-		logger:        nopadapter.NewAdapter(),
 		name:          "mail",
+		logger:        nopadapter.NewAdapter(),
 		renderMessage: defaultMessageRenderer,
 		parseMode:     ModeHTML,
 		priority:      PriorityNormal,

@@ -9,27 +9,30 @@ import (
 	"github.com/nikoksr/notify/v2"
 )
 
-// Send sends a notification to each Mail channel defined in Service. The sender is configured through SendOption and
-// SendConfig. Returns an error upon failure to send the message, or if there are no recipients identified.
-func (s *Service) Send(ctx context.Context, subject, message string, opts ...notify.SendOption) error {
-	if len(s.recipients) == 0 {
-		return notify.ErrNoRecipients
-	}
-
-	conf := SendConfig{
+// newSendConfig creates a new send config with default values.
+func (s *Service) newSendConfig(subject, message string, opts ...notify.SendOption) *SendConfig {
+	conf := &SendConfig{
 		Subject: subject,
 		Message: message,
 	}
 
 	for _, opt := range opts {
-		opt(&conf)
+		opt(conf)
 	}
 
 	conf.Message = s.renderMessage(conf)
 
-	if conf.Message == "" && len(conf.Attachments) == 0 {
-		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")
-		return nil
+	return conf
+}
+
+// send sends a message to all recipients. It returns an error if the message could not be sent.
+func (s *Service) send(ctx context.Context, conf *SendConfig) error {
+	s.logger.Debug().Msg("Sending message to all recipients")
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
 	}
 
 	// Create a new email message.
@@ -39,9 +42,9 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 		AddCc(s.ccRecipients...).
 		AddBcc(s.bccRecipients...).
 		SetPriority(mail.Priority(s.priority)).
-		SetSubject(subject).
+		SetSubject(conf.Subject).
 		SetBody(mail.ContentType(conf.ParseMode),
-			message,
+			conf.Message,
 		)
 
 	// Add attachments
@@ -63,14 +66,6 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 	}
 
 	// Send the email to the SMTP server.
-	s.logger.Debug().Msg("Sending message to all recipients")
-
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-	}
-
 	if err := email.Send(s.client); err != nil {
 		return &notify.SendNotificationError{
 			Recipient: "unknown", // TODO: Not sure how to get the recipient from the error
@@ -81,4 +76,23 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 	s.logger.Info().Msg("Message successfully sent to all recipients")
 
 	return nil
+}
+
+// Send sends a notification to each Mail channel defined in Service. The sender is configured through SendOption and
+// SendConfig. Returns an error upon failure to send the message, or if there are no recipients identified.
+func (s *Service) Send(ctx context.Context, subject, message string, opts ...notify.SendOption) error {
+	if len(s.recipients) == 0 {
+		return notify.ErrNoRecipients
+	}
+
+	// Create new send config from service's default values and passed options
+	conf := s.newSendConfig(subject, message, opts...)
+
+	if conf.Message == "" && len(conf.Attachments) == 0 {
+		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")
+		return nil
+	}
+
+	// Send message to all recipients
+	return s.send(ctx, conf)
 }

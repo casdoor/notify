@@ -45,7 +45,7 @@ func WithName(name string) Option {
 //
 // Example:
 //
-//	twilio.WithMessageRenderer(func(conf SendConfig) string {
+//	twilio.WithMessageRenderer(func(conf *SendConfig) string {
 //		var builder strings.Builder
 //
 //		builder.WriteString(conf.subject)

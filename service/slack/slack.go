@@ -14,7 +14,7 @@ import (
 var _ notify.Service = (*Service)(nil)
 
 // defaultMessageRenderer is a helper function to format messages for Slack.
-func defaultMessageRenderer(conf SendConfig) string {
+func defaultMessageRenderer(conf *SendConfig) string {
 	var builder strings.Builder
 
 	builder.WriteString(conf.Subject)
@@ -28,14 +28,12 @@ func defaultMessageRenderer(conf SendConfig) string {
 type Service struct {
 	client *slack.Client
 
-	logger        onelog.Logger
-	channelIDs    []string
 	name          string
-	renderMessage func(conf SendConfig) string
+	logger        onelog.Logger
+	renderMessage func(conf *SendConfig) string
 
-	// Slack specific fields
-
-	// escapeMessage is a flag used to escape characters in messages that have special meanings in Slack's markup.
+	// Slack specific
+	channelIDs    []string
 	escapeMessage bool
 }
 
@@ -48,8 +46,8 @@ func New(token string, opts ...Option) (*Service, error) {
 
 	s := &Service{
 		client:        client,
-		logger:        nopadapter.NewAdapter(),
 		name:          "slack",
+		logger:        nopadapter.NewAdapter(),
 		renderMessage: defaultMessageRenderer,
 	}
 

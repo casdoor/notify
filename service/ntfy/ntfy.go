@@ -57,7 +57,7 @@ const (
 	defaultAPIBaseURL = "https://ntfy.sh/"
 )
 
-func defaultMessageRenderer(conf SendConfig) string {
+func defaultMessageRenderer(conf *SendConfig) string {
 	return conf.Message
 }
 
@@ -65,13 +65,13 @@ func defaultMessageRenderer(conf SendConfig) string {
 type Service struct {
 	client *http.Client
 
-	logger        onelog.Logger
-	topics        []string
 	name          string
-	token         string
-	renderMessage func(conf SendConfig) string
+	logger        onelog.Logger
+	renderMessage func(conf *SendConfig) string
 
-	// Ntfy specific fields
+	// Ntfy specific
+	token       string
+	topics      []string
 	apiBaseURL  string
 	parseMode   Mode
 	priority    Priority

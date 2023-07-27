@@ -9,7 +9,7 @@ import (
 )
 
 // sendToChat sends a message to a chat. It returns an error if the message could not be sent.
-func (s *Service) sendToChat(chatID int64, conf SendConfig) error {
+func (s *Service) sendToChat(chatID int64, conf *SendConfig) error {
 	if len(conf.Attachments) == 0 {
 		return s.sendTextMessage(chatID, conf)
 	}
@@ -18,7 +18,7 @@ func (s *Service) sendToChat(chatID int64, conf SendConfig) error {
 }
 
 // sendTextMessage sends a text message
-func (s *Service) sendTextMessage(chatID int64, conf SendConfig) error {
+func (s *Service) sendTextMessage(chatID int64, conf *SendConfig) error {
 	s.logger.Debug().Int64("recipient", chatID).Msg("Sending text message to chat")
 
 	message := telegram.NewMessage(chatID, conf.Message)
@@ -34,7 +34,7 @@ func (s *Service) sendTextMessage(chatID int64, conf SendConfig) error {
 }
 
 // sendFileAttachments sends file attachments
-func (s *Service) sendFileAttachments(chatID int64, conf SendConfig) error {
+func (s *Service) sendFileAttachments(chatID int64, conf *SendConfig) error {
 	for idx, attachment := range conf.Attachments {
 		isFirst := idx == 0
 		if err := s.sendFile(chatID, conf, isFirst, attachment); err != nil {
@@ -46,7 +46,7 @@ func (s *Service) sendFileAttachments(chatID int64, conf SendConfig) error {
 }
 
 // sendFile sends an individual file
-func (s *Service) sendFile(chatID int64, conf SendConfig, isFirst bool, attachment notify.Attachment) error {
+func (s *Service) sendFile(chatID int64, conf *SendConfig, isFirst bool, attachment notify.Attachment) error {
 	s.logger.Debug().Int64("recipient", chatID).Str("file", attachment.Name()).Msg("Sending file to chat")
 
 	document := telegram.NewDocument(chatID, telegram.FileReader{
@@ -69,30 +69,25 @@ func (s *Service) sendFile(chatID int64, conf SendConfig, isFirst bool, attachme
 	return nil
 }
 
-// Send sends a message to all chats that are configured to receive messages. It returns an error if the message could
-// not be sent.
-func (s *Service) Send(ctx context.Context, subject, message string, opts ...notify.SendOption) error {
-	if len(s.chatIDs) == 0 {
-		return notify.ErrNoRecipients
-	}
-
-	conf := SendConfig{
-		ParseMode: s.parseMode,
+// newSendConfig creates a new send config with default values.
+func (s *Service) newSendConfig(subject, message string, opts ...notify.SendOption) *SendConfig {
+	conf := &SendConfig{
 		Subject:   subject,
 		Message:   message,
+		ParseMode: s.parseMode,
 	}
 
 	for _, opt := range opts {
-		opt(&conf)
+		opt(conf)
 	}
 
 	conf.Message = s.renderMessage(conf)
 
-	if conf.Message == "" && len(conf.Attachments) == 0 {
-		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")
-		return nil
-	}
+	return conf
+}
 
+// send sends a message to all recipients. It returns an error if the message could not be sent.
+func (s *Service) send(ctx context.Context, conf *SendConfig) error {
 	s.logger.Debug().Msg("Sending message to all recipients")
 
 	for _, chatID := range s.chatIDs {
@@ -113,4 +108,23 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 	s.logger.Info().Msg("Message successfully sent to all recipients")
 
 	return nil
+}
+
+// Send sends a message to all chats that are configured to receive messages. It returns an error if the message could
+// not be sent.
+func (s *Service) Send(ctx context.Context, subject, message string, opts ...notify.SendOption) error {
+	if len(s.chatIDs) == 0 {
+		return notify.ErrNoRecipients
+	}
+
+	// Create new send config from service's default values and passed options
+	conf := s.newSendConfig(subject, message, opts...)
+
+	if conf.Message == "" && len(conf.Attachments) == 0 {
+		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")
+		return nil
+	}
+
+	// Send message to all recipients
+	return s.send(ctx, conf)
 }

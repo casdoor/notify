@@ -46,7 +46,7 @@ func WithName(name string) Option {
 //
 // Example:
 //
-//	ntfy.WithMessageRenderer(func(conf SendConfig) string {
+//	ntfy.WithMessageRenderer(func(conf *SendConfig) string {
 //		var builder strings.Builder
 //
 //		builder.WriteString(conf.subject)
@@ -55,7 +55,7 @@ func WithName(name string) Option {
 //
 //		return builder.String()
 //	})
-func WithMessageRenderer(builder func(conf SendConfig) string) Option {
+func WithMessageRenderer(builder func(conf *SendConfig) string) Option {
 	return func(s *Service) {
 		s.renderMessage = builder
 		s.logger.Info().Msg("Message renderer set")

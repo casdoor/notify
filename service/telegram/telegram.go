@@ -19,7 +19,7 @@ const (
 	ModeMarkdown = telegram.ModeMarkdown
 )
 
-func defaultMessageRenderer(conf SendConfig) string {
+func defaultMessageRenderer(conf *SendConfig) string {
 	var builder strings.Builder
 
 	builder.WriteString(conf.Subject)
@@ -33,12 +33,12 @@ func defaultMessageRenderer(conf SendConfig) string {
 type Service struct {
 	client *telegram.BotAPI
 
-	logger        onelog.Logger
-	chatIDs       []int64
 	name          string
-	renderMessage func(conf SendConfig) string
+	logger        onelog.Logger
+	renderMessage func(conf *SendConfig) string
 
-	// Send option fields
+	// Telegram specific
+	chatIDs   []int64
 	parseMode string
 }
 
@@ -51,8 +51,8 @@ func New(token string, opts ...Option) (*Service, error) {
 
 	s := &Service{
 		client:        client,
-		logger:        nopadapter.NewAdapter(),
 		name:          "telegram",
+		logger:        nopadapter.NewAdapter(),
 		renderMessage: defaultMessageRenderer,
 		parseMode:     ModeMarkdown,
 	}

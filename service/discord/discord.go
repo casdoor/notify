@@ -16,7 +16,7 @@ var (
 	_ client         = (*webhookClient)(nil)
 )
 
-func defaultMessageRenderer(conf SendConfig) string {
+func defaultMessageRenderer(conf *SendConfig) string {
 	var builder strings.Builder
 
 	builder.WriteString(conf.Subject)
@@ -38,7 +38,7 @@ type webhookClient struct {
 
 type client interface {
 	setSession(session *discordgo.Session)
-	sendTo(recipient string, conf SendConfig) error
+	sendTo(recipient string, conf *SendConfig) error
 }
 
 func (c *authClient) setSession(session *discordgo.Session) {
@@ -65,17 +65,19 @@ func (c *webhookClient) setSession(session *discordgo.Session) {
 type Service struct {
 	client client
 
-	logger        onelog.Logger
-	recipients    []string
 	name          string
-	renderMessage func(conf SendConfig) string
+	logger        onelog.Logger
+	renderMessage func(conf *SendConfig) string
+
+	// Discord specific
+	recipients []string
 }
 
 func newService(client client, name string, opts ...Option) (*Service, error) {
 	svc := &Service{
 		client:        client,
-		logger:        nopadapter.NewAdapter(),
 		name:          name,
+		logger:        nopadapter.NewAdapter(),
 		renderMessage: defaultMessageRenderer,
 	}
 
