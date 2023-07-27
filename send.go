@@ -9,6 +9,9 @@ import (
 // Send sends a notification with the given subject and message through all the services of n. It performs these
 // operations concurrently and returns the first encountered error, if any.
 func (d *Dispatcher) Send(ctx context.Context, subject, message string, opts ...SendOption) error {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
 	var eg errgroup.Group
 	for _, service := range d.services {
 		service := service
@@ -23,10 +26,4 @@ func (d *Dispatcher) Send(ctx context.Context, subject, message string, opts ...
 	}
 
 	return eg.Wait()
-}
-
-// Send sends a notification with the given subject and message through all the services of the defaultNotify instance.
-// It performs these operations concurrently and returns the first encountered error, if any.
-func Send(ctx context.Context, subject, message string, opts ...SendOption) error {
-	return defaultDispatcher.Send(ctx, subject, message, opts...)
 }
