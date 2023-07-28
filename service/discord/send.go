@@ -41,10 +41,20 @@ func (c *webhookClient) sendTo(recipient string, conf *SendConfig) error {
 		return fmt.Errorf("invalid webhook URL: %w", err)
 	}
 
+	// Validate the URL.
+	if u.Scheme != "https" || u.Host != "discord.com" || !strings.HasPrefix(u.Path, "/api/webhooks/") {
+		return fmt.Errorf("invalid webhook URL: %s", u.String())
+	}
+
+	// Sanity check to avoid panics.
+	segments := strings.Split(u.Path, "/")
+	if len(segments) < 3 {
+		return fmt.Errorf("invalid webhook URL: %s", u.String())
+	}
+
 	// Get the webhook ID and token from the URL.
 	// The webhook ID is the second to last path segment.
 	// The webhook token is the last path segment.
-	segments := strings.Split(u.Path, "/")
 	webhookID := segments[len(segments)-2]
 	webhookToken := segments[len(segments)-1]
 
