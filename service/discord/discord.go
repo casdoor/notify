@@ -70,6 +70,7 @@ type Service struct {
 	mu            sync.RWMutex
 	logger        onelog.Logger
 	renderMessage func(conf *SendConfig) string
+	dryRun        bool
 
 	// Discord specific
 	recipients []string
@@ -89,6 +90,7 @@ func newService(client client, name string, opts ...Option) (*Service, error) {
 		name:          name,
 		logger:        nopadapter.NewAdapter(),
 		renderMessage: defaultMessageRenderer,
+		dryRun:        false,
 	}
 
 	s.applyOptions(opts...)

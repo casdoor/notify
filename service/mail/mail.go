@@ -29,6 +29,7 @@ type (
 		mu            sync.RWMutex
 		logger        onelog.Logger
 		renderMessage func(conf *SendConfig) string
+		dryRun        bool
 
 		// Mail specific
 		recipients        []string
@@ -100,6 +101,7 @@ func New(host string, port int, username, password string, opts ...Option) (*Ser
 		name:          "mail",
 		logger:        nopadapter.NewAdapter(),
 		renderMessage: defaultMessageRenderer,
+		dryRun:        false,
 		parseMode:     ModeHTML,
 		priority:      PriorityNormal,
 		senderName:    "From Notify <no-reply>",

@@ -62,6 +62,14 @@ func WithMessageRenderer(builder func(conf *SendConfig) string) Option {
 	}
 }
 
+// WithDryRun sets the dry run flag. If set to true, messages will not be sent.
+func WithDryRun(dryRun bool) Option {
+	return func(s *Service) {
+		s.dryRun = dryRun
+		s.logger.Info().Bool("dry-run", dryRun).Msg("Dry run set")
+	}
+}
+
 // WithAPIBaseURL sets the API base URL. The default is "https://ntfy.sh/".
 func WithAPIBaseURL(url string) Option {
 	return func(s *Service) {

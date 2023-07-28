@@ -51,6 +51,14 @@ func WithMessageRenderer(builder func(conf *SendConfig) string) Option {
 	}
 }
 
+// WithDryRun sets the dry run flag. If set to true, messages will not be sent.
+func WithDryRun(dryRun bool) Option {
+	return func(s *Service) {
+		s.dryRun = dryRun
+		s.logger.Info().Bool("dry-run", dryRun).Msg("Dry run set")
+	}
+}
+
 // WithEscapeMessage sets whether messages should be escaped or not before sending.
 func WithEscapeMessage(escapeMessage bool) Option {
 	return func(s *Service) {

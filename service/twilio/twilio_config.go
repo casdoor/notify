@@ -61,6 +61,14 @@ func WithMessageRenderer(builder func(conf *SendConfig) string) Option {
 	}
 }
 
+// WithDryRun sets the dry run flag. If set to true, no messages will be sent.
+func WithDryRun(dryRun bool) Option {
+	return func(s *Service) {
+		s.dryRun = dryRun
+		s.logger.Info().Bool("dry-run", dryRun).Msg("Dry run set")
+	}
+}
+
 // WithEdge sets the default edge to use.
 func WithEdge(edge string) Option {
 	return func(s *Service) {

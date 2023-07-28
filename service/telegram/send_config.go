@@ -19,6 +19,7 @@ type SendConfig struct {
 	Message     string
 	Attachments []notify.Attachment
 	Metadata    map[string]any
+	DryRun      bool
 
 	// Telegram specific fields
 
@@ -33,6 +34,11 @@ func (c *SendConfig) SetAttachments(attachments ...notify.Attachment) {
 // SetMetadata sets the metadata of the message. This method is needed as part of the notify.SendConfig interface.
 func (c *SendConfig) SetMetadata(metadata map[string]any) {
 	c.Metadata = metadata
+}
+
+// SetDryRun sets the dry run flag of the message. This method is needed as part of the notify.SendConfig interface.
+func (c *SendConfig) SetDryRun(dryRun bool) {
+	c.DryRun = dryRun
 }
 
 // Send options

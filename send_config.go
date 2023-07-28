@@ -9,6 +9,9 @@ type SendConfig interface {
 
 	// SetMetadata sets additional metadata that can be sent with the message.
 	SetMetadata(metadata map[string]any)
+
+	// SetDryRun sets the dry run flag.
+	SetDryRun(dryRun bool)
 }
 
 // SendOption is a function that modifies the configuration of a Send call.
@@ -34,5 +37,12 @@ func SendWithAttachments(attachments ...Attachment) SendOption {
 func SendWithMetadata(metadata map[string]any) SendOption {
 	return func(c SendConfig) {
 		c.SetMetadata(metadata)
+	}
+}
+
+// SendWithDryRun sets the dry run flag. If set to true, the service will not try to authenticate or send the message.
+func SendWithDryRun(dryRun bool) SendOption {
+	return func(c SendConfig) {
+		c.SetDryRun(dryRun)
 	}
 }

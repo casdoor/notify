@@ -33,6 +33,7 @@ type Service struct {
 	mu            sync.RWMutex
 	logger        onelog.Logger
 	renderMessage func(conf *SendConfig) string
+	dryRun        bool
 
 	// Slack specific
 	channelIDs    []string
@@ -59,6 +60,7 @@ func New(token string, opts ...Option) (*Service, error) {
 		name:          "slack",
 		logger:        nopadapter.NewAdapter(),
 		renderMessage: defaultMessageRenderer,
+		dryRun:        false,
 	}
 
 	s.applyOptions(opts...)

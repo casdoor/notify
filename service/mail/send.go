@@ -14,6 +14,7 @@ func (s *Service) newSendConfig(subject, message string, opts ...notify.SendOpti
 	conf := &SendConfig{
 		Subject: subject,
 		Message: message,
+		DryRun:  s.dryRun,
 	}
 
 	for _, opt := range opts {
@@ -93,6 +94,11 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 
 	if conf.Message == "" && len(conf.Attachments) == 0 {
 		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")
+		return nil
+	}
+
+	if conf.DryRun {
+		s.logger.Info().Str("message", conf.Message).Msg("Dry run enabled - Message not sent.")
 		return nil
 	}
 

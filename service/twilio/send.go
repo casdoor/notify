@@ -36,6 +36,7 @@ func (s *Service) newSendConfig(subject, message string, opts ...notify.SendOpti
 	conf := &SendConfig{
 		Subject: subject,
 		Message: message,
+		DryRun:  s.dryRun,
 	}
 
 	for _, opt := range opts {
@@ -91,6 +92,11 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 
 	if len(conf.Attachments) > 0 {
 		s.logger.Debug().Msg("Attachments are not supported by Twilio")
+	}
+
+	if conf.DryRun {
+		s.logger.Info().Str("message", conf.Message).Msg("Dry run enabled - Message not sent.")
+		return nil
 	}
 
 	// Send message to all recipients

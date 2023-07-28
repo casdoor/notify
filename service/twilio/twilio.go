@@ -31,6 +31,7 @@ type Service struct {
 	mu            sync.RWMutex
 	logger        onelog.Logger
 	renderMessage func(conf *SendConfig) string
+	dryRun        bool
 
 	// Twilio specific
 	senderPhoneNumber string
@@ -58,6 +59,7 @@ func newService(username, password, accountSid, phoneNumber string, opts ...Opti
 		name:              "twilio",
 		logger:            nopadapter.NewAdapter(),
 		renderMessage:     defaultMessageRenderer,
+		dryRun:            false,
 		senderPhoneNumber: phoneNumber,
 	}
 
