@@ -71,6 +71,7 @@ type Service struct {
 	logger        onelog.Logger
 	renderMessage func(conf *SendConfig) string
 	dryRun        bool
+	continueOnErr bool
 
 	// Ntfy specific
 	token       string
@@ -100,7 +101,6 @@ func New(token string, opts ...Option) (*Service, error) {
 		name:          "ntfy",
 		token:         token,
 		renderMessage: defaultMessageRenderer,
-		dryRun:        false,
 		apiBaseURL:    defaultAPIBaseURL,
 		parseMode:     ModeText,
 		priority:      PriorityDefault,

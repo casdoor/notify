@@ -15,11 +15,12 @@ var _ notify.SendConfig = (*SendConfig)(nil)
 // However, users must be aware that they are responsible for managing thread-safety
 // and other similar concerns when manipulating these fields directly.
 type SendConfig struct {
-	Subject     string
-	Message     string
-	Attachments []notify.Attachment
-	Metadata    map[string]any
-	DryRun      bool
+	Subject       string
+	Message       string
+	Attachments   []notify.Attachment
+	Metadata      map[string]any
+	DryRun        bool
+	ContinueOnErr bool
 
 	// Discord specific fields
 }
@@ -37,4 +38,10 @@ func (c *SendConfig) SetMetadata(metadata map[string]any) {
 // SetDryRun sets the dry run flag of the message. This method is needed as part of the notify.SendConfig interface.
 func (c *SendConfig) SetDryRun(dryRun bool) {
 	c.DryRun = dryRun
+}
+
+// SetContinueOnErr sets the continue on error flag of the message. This method is needed as part of the
+// notify.SendConfig interface.
+func (c *SendConfig) SetContinueOnErr(continueOnErr bool) {
+	c.ContinueOnErr = continueOnErr
 }

@@ -103,14 +103,15 @@ func (s *Service) sendToTopic(ctx context.Context, topic string, conf *SendConfi
 // newSendConfig creates a new send config with default values.
 func (s *Service) newSendConfig(subject, message string, opts ...notify.SendOption) *SendConfig {
 	conf := &SendConfig{
-		Subject:     subject,
-		Message:     message,
-		DryRun:      s.dryRun,
-		ParseMode:   s.parseMode,
-		Priority:    s.priority,
-		Tags:        s.tags,
-		Delay:       s.delay,
-		ClickAction: s.clickAction,
+		Subject:       subject,
+		Message:       message,
+		DryRun:        s.dryRun,
+		ContinueOnErr: s.continueOnErr,
+		ParseMode:     s.parseMode,
+		Priority:      s.priority,
+		Tags:          s.tags,
+		Delay:         s.delay,
+		ClickAction:   s.clickAction,
 	}
 
 	for _, opt := range opts {
@@ -122,22 +123,51 @@ func (s *Service) newSendConfig(subject, message string, opts ...notify.SendOpti
 	return conf
 }
 
-// send sends a message to all recipients. It returns an error if the message could not be sent.
+// The function 'send' is responsible for the process of sending a message to every recipient in the list.
+//
+// For each recipient, it checks if context was cancelled. If yes, it immediately returns the error from context. If
+// not, it tries to send the message to the phone number.
+//
+// If the message sending process fails, it switches to the error handling routine 'handleError' that appends recipient
+// and error into respective slices and logs the error. If the 'ContinueOnErr' option is set to false, the function
+// returns the collected errors. If not, it continues to the next recipient.
 func (s *Service) send(ctx context.Context, conf *SendConfig) error {
-	s.logger.Debug().Msg("Sending message to recipients")
+	s.logger.Debug().Msg("Sending message to all recipients")
+
+	var failedRecipients []string
+	var errorList []error
+
+	handleError := func(topic string, err error) {
+		// Append error info and log
+		failedRecipients = append(failedRecipients, topic)
+		errorList = append(errorList, err) // asNotifyError has been called in sendToTopic, as it requires the http response
+		s.logger.Warn().Err(err).Str("recipient", topic).Msg("Error sending message to recipient")
+	}
 
 	for _, topic := range s.topics {
-		select {
-		case <-ctx.Done():
+		// If context is cancelled, return error immediately
+		if ctx.Err() != nil {
 			return ctx.Err()
-		default:
 		}
 
 		if err := s.sendToTopic(ctx, topic, conf); err != nil {
-			return &notify.SendNotificationError{
-				Recipient: topic,
-				Cause:     err, // asNotifyError has been called in sendToTopic, as it requires the http response
+			handleError(topic, err) // Handle the error
+
+			if !conf.ContinueOnErr {
+				// Return collected errors
+				return &notify.SendError{
+					FailedRecipients: failedRecipients,
+					Errors:           errorList,
+				}
 			}
+		}
+	}
+
+	// If any errors occurred, return them
+	if len(errorList) > 0 {
+		return &notify.SendError{
+			FailedRecipients: failedRecipients,
+			Errors:           errorList,
 		}
 	}
 

@@ -69,6 +69,15 @@ func WithDryRun(dryRun bool) Option {
 	}
 }
 
+// WithContinueOnErr sets the continue on error flag. If set to true, the service will continue sending the message to
+// the next recipient even if an error occurred.
+func WithContinueOnErr(continueOnErr bool) Option {
+	return func(s *Service) {
+		s.continueOnErr = continueOnErr
+		s.logger.Info().Bool("continue-on-error", continueOnErr).Msg("Continue on error set")
+	}
+}
+
 // WithParseMode sets the parse mode for sending messages. The default is ModeHTML.
 func WithParseMode(mode string) Option {
 	return func(s *Service) {

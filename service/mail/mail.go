@@ -30,6 +30,7 @@ type (
 		logger        onelog.Logger
 		renderMessage func(conf *SendConfig) string
 		dryRun        bool
+		continueOnErr bool // no-op for Mail
 
 		// Mail specific
 		recipients        []string
@@ -101,7 +102,6 @@ func New(host string, port int, username, password string, opts ...Option) (*Ser
 		name:          "mail",
 		logger:        nopadapter.NewAdapter(),
 		renderMessage: defaultMessageRenderer,
-		dryRun:        false,
 		parseMode:     ModeHTML,
 		priority:      PriorityNormal,
 		senderName:    "From Notify <no-reply>",

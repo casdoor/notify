@@ -39,6 +39,7 @@ type Service struct {
 	logger        onelog.Logger
 	renderMessage func(conf *SendConfig) string
 	dryRun        bool
+	continueOnErr bool
 
 	// Telegram specific
 	chatIDs   []int64
@@ -65,7 +66,6 @@ func New(token string, opts ...Option) (*Service, error) {
 		name:          "telegram",
 		logger:        nopadapter.NewAdapter(),
 		renderMessage: defaultMessageRenderer,
-		dryRun:        false,
 		parseMode:     ModeMarkdown,
 	}
 

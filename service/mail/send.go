@@ -12,9 +12,10 @@ import (
 // newSendConfig creates a new send config with default values.
 func (s *Service) newSendConfig(subject, message string, opts ...notify.SendOption) *SendConfig {
 	conf := &SendConfig{
-		Subject: subject,
-		Message: message,
-		DryRun:  s.dryRun,
+		Subject:       subject,
+		Message:       message,
+		DryRun:        s.dryRun,
+		ContinueOnErr: s.continueOnErr,
 	}
 
 	for _, opt := range opts {
@@ -26,14 +27,19 @@ func (s *Service) newSendConfig(subject, message string, opts ...notify.SendOpti
 	return conf
 }
 
-// send sends a message to all recipients. It returns an error if the message could not be sent.
+// The function 'send' is responsible for the process of sending a message to every recipient in the list.
+//
+// It checks if context was cancelled. If yes, it immediately returns the error from context. If not, it tries to send
+// the message to the recipients.
+//
+// Compared to other implementations of the send function, this one does not have an error handling routine. This is
+// because the mail package supports sending to multiple recipients at once. We're not looping over the recipients
+// ourselves, but instead let the mail package do it for us. If an error occurs, it will be returned immediately.
 func (s *Service) send(ctx context.Context, conf *SendConfig) error {
 	s.logger.Debug().Msg("Sending message to all recipients")
 
-	select {
-	case <-ctx.Done():
+	if ctx.Err() != nil {
 		return ctx.Err()
-	default:
 	}
 
 	// Create a new email message.
@@ -68,9 +74,9 @@ func (s *Service) send(ctx context.Context, conf *SendConfig) error {
 
 	// Send the email to the SMTP server.
 	if err := email.Send(s.client); err != nil {
-		return &notify.SendNotificationError{
-			Recipient: "unknown", // TODO: Not sure how to get the recipient from the error
-			Cause:     err,       // TODO: convert to Notify error
+		return &notify.SendError{
+			FailedRecipients: []string{"unknown"}, // TODO: Not sure how to get the recipient from the error
+			Errors:           []error{err},        // TODO: convert to Notify error
 		}
 	}
 

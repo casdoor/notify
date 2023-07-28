@@ -104,6 +104,15 @@ func WithDryRun(dryRun bool) Option {
 	}
 }
 
+// WithContinueOnErr sets the continue on error flag. Compared to other services, this is a no-op, as the Mail service
+// will always send its messages to all recipients at once.
+func WithContinueOnErr(continueOnErr bool) Option {
+	return func(s *Service) {
+		s.continueOnErr = continueOnErr
+		s.logger.Info().Bool("continue-on-error", continueOnErr).Msg("Continue on error set")
+	}
+}
+
 // WithParseMode sets the parse mode for sending messages. The default is ModeHTML.
 func WithParseMode(mode Mode) Option {
 	return func(s *Service) {

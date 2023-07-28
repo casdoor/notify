@@ -34,6 +34,7 @@ type Service struct {
 	logger        onelog.Logger
 	renderMessage func(conf *SendConfig) string
 	dryRun        bool
+	continueOnErr bool
 
 	// Slack specific
 	channelIDs    []string
@@ -60,7 +61,6 @@ func New(token string, opts ...Option) (*Service, error) {
 		name:          "slack",
 		logger:        nopadapter.NewAdapter(),
 		renderMessage: defaultMessageRenderer,
-		dryRun:        false,
 	}
 
 	s.applyOptions(opts...)

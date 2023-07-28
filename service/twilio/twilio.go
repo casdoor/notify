@@ -32,6 +32,7 @@ type Service struct {
 	logger        onelog.Logger
 	renderMessage func(conf *SendConfig) string
 	dryRun        bool
+	continueOnErr bool
 
 	// Twilio specific
 	senderPhoneNumber string
@@ -60,6 +61,7 @@ func newService(username, password, accountSid, phoneNumber string, opts ...Opti
 		logger:            nopadapter.NewAdapter(),
 		renderMessage:     defaultMessageRenderer,
 		dryRun:            false,
+		continueOnErr:     false,
 		senderPhoneNumber: phoneNumber,
 	}
 

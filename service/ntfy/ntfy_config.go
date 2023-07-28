@@ -70,6 +70,15 @@ func WithDryRun(dryRun bool) Option {
 	}
 }
 
+// WithContinueOnErr sets the continue on error flag. If set to true, the service will continue sending the message to
+// the next recipient even if an error occurred.
+func WithContinueOnErr(continueOnErr bool) Option {
+	return func(s *Service) {
+		s.continueOnErr = continueOnErr
+		s.logger.Info().Bool("continue-on-error", continueOnErr).Msg("Continue on error set")
+	}
+}
+
 // WithAPIBaseURL sets the API base URL. The default is "https://ntfy.sh/".
 func WithAPIBaseURL(url string) Option {
 	return func(s *Service) {

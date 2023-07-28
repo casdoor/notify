@@ -12,6 +12,9 @@ type SendConfig interface {
 
 	// SetDryRun sets the dry run flag.
 	SetDryRun(dryRun bool)
+
+	// SetContinueOnErr sets the continue on error flag.
+	SetContinueOnErr(continueOnError bool)
 }
 
 // SendOption is a function that modifies the configuration of a Send call.
@@ -44,5 +47,13 @@ func SendWithMetadata(metadata map[string]any) SendOption {
 func SendWithDryRun(dryRun bool) SendOption {
 	return func(c SendConfig) {
 		c.SetDryRun(dryRun)
+	}
+}
+
+// SendWithContinueOnErr sets the continue on error flag. If set to true, the service will continue sending the
+// message to the next recipient even if an error occurred.
+func SendWithContinueOnErr(continueOnErr bool) SendOption {
+	return func(c SendConfig) {
+		c.SetContinueOnErr(continueOnErr)
 	}
 }
