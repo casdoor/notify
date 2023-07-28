@@ -84,5 +84,5 @@ func (s *Service) AddRecipients(chatIDs ...int64) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.chatIDs = append(s.chatIDs, chatIDs...)
-	s.logger.Info().Int("count", len(chatIDs)).Int("total", len(s.chatIDs)).Msg("Recipients added")
+	s.logger.Debug().Int("count", len(chatIDs)).Int("total", len(s.chatIDs)).Msg("Recipients added")
 }

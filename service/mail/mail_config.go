@@ -20,7 +20,7 @@ func WithServer(server *mail.SMTPServer) Option {
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		s.server = server
-		s.logger.Info().Msg("Mail server set")
+		s.logger.Debug().Msg("Mail server set")
 	}
 }
 
@@ -30,7 +30,7 @@ func WithClient(client *mail.SMTPClient) Option {
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		s.client = client
-		s.logger.Info().Msg("Mail client set")
+		s.logger.Debug().Msg("Mail client set")
 	}
 }
 
@@ -40,7 +40,7 @@ func WithRecipients(recipients ...string) Option {
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		s.recipients = recipients
-		s.logger.Info().Int("count", len(recipients)).Int("total", len(s.recipients)).Msg("Recipients set")
+		s.logger.Debug().Int("count", len(recipients)).Int("total", len(s.recipients)).Msg("Recipients set")
 	}
 }
 
@@ -50,7 +50,7 @@ func WithCCRecipients(recipients ...string) Option {
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		s.ccRecipients = recipients
-		s.logger.Info().Int("count", len(recipients)).Int("total", len(s.ccRecipients)).Msg("CC recipients set")
+		s.logger.Debug().Int("count", len(recipients)).Int("total", len(s.ccRecipients)).Msg("CC recipients set")
 	}
 }
 
@@ -60,7 +60,7 @@ func WithBCCRecipients(recipients ...string) Option {
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		s.bccRecipients = recipients
-		s.logger.Info().Int("count", len(recipients)).Int("total", len(s.bccRecipients)).Msg("BCC recipients set")
+		s.logger.Debug().Int("count", len(recipients)).Int("total", len(s.bccRecipients)).Msg("BCC recipients set")
 	}
 }
 
@@ -70,7 +70,7 @@ func WithName(name string) Option {
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		s.name = name
-		s.logger.Info().Str("name", name).Msg("Service name set")
+		s.logger.Debug().Str("name", name).Msg("Service name set")
 	}
 }
 
@@ -92,7 +92,7 @@ func WithMessageRenderer(builder func(conf *SendConfig) string) Option {
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		s.renderMessage = builder
-		s.logger.Info().Msg("Message renderer set")
+		s.logger.Debug().Msg("Message renderer set")
 	}
 }
 
@@ -100,7 +100,7 @@ func WithMessageRenderer(builder func(conf *SendConfig) string) Option {
 func WithDryRun(dryRun bool) Option {
 	return func(s *Service) {
 		s.dryRun = dryRun
-		s.logger.Info().Bool("dry-run", dryRun).Msg("Dry run set")
+		s.logger.Debug().Bool("dry-run", dryRun).Msg("Dry run set")
 	}
 }
 
@@ -109,7 +109,7 @@ func WithDryRun(dryRun bool) Option {
 func WithContinueOnErr(continueOnErr bool) Option {
 	return func(s *Service) {
 		s.continueOnErr = continueOnErr
-		s.logger.Info().Bool("continue-on-error", continueOnErr).Msg("Continue on error set")
+		s.logger.Debug().Bool("continue-on-error", continueOnErr).Msg("Continue on error set")
 	}
 }
 
@@ -119,7 +119,7 @@ func WithParseMode(mode Mode) Option {
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		s.parseMode = mode
-		s.logger.Info().Int("mode", int(mode)).Msg("Parse mode set")
+		s.logger.Debug().Int("mode", int(mode)).Msg("Parse mode set")
 	}
 }
 
@@ -129,7 +129,7 @@ func WithPriority(priority Priority) Option {
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		s.priority = priority
-		s.logger.Info().Int("priority", int(priority)).Msg("Priority set")
+		s.logger.Debug().Int("priority", int(priority)).Msg("Priority set")
 	}
 }
 
@@ -139,7 +139,7 @@ func WithSenderName(name string) Option {
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		s.senderName = name
-		s.logger.Info().Str("name", name).Msg("Sender name set")
+		s.logger.Debug().Str("name", name).Msg("Sender name set")
 	}
 }
 
@@ -149,7 +149,7 @@ func WithInlineAttachments(inline bool) Option {
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		s.inlineAttachments = inline
-		s.logger.Info().Bool("inline", inline).Msg("Inline attachments set")
+		s.logger.Debug().Bool("inline", inline).Msg("Inline attachments set")
 	}
 }
 
@@ -159,7 +159,7 @@ func WithKeepAlive(keepAlive bool) Option {
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		s.server.KeepAlive = keepAlive
-		s.logger.Info().Bool("keepAlive", keepAlive).Msg("Keep alive set")
+		s.logger.Debug().Bool("keepAlive", keepAlive).Msg("Keep alive set")
 	}
 }
 
@@ -169,7 +169,7 @@ func WithConnectTimeout(timeout time.Duration) Option {
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		s.server.ConnectTimeout = timeout
-		s.logger.Info().Dur("timeout", timeout).Msg("Connect timeout set")
+		s.logger.Debug().Dur("timeout", timeout).Msg("Connect timeout set")
 	}
 }
 
@@ -179,7 +179,7 @@ func WithSendTimeout(timeout time.Duration) Option {
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		s.server.SendTimeout = timeout
-		s.logger.Info().Dur("timeout", timeout).Msg("Send timeout set")
+		s.logger.Debug().Dur("timeout", timeout).Msg("Send timeout set")
 	}
 }
 
@@ -189,7 +189,7 @@ func WithEncryption(encryption mail.Encryption) Option {
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		s.server.Encryption = encryption
-		s.logger.Info().Int("encryption", int(encryption)).Msg("Encryption set")
+		s.logger.Debug().Int("encryption", int(encryption)).Msg("Encryption set")
 	}
 }
 
@@ -199,7 +199,7 @@ func WithTLSConfig(config *tls.Config) Option {
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		s.server.TLSConfig = config
-		s.logger.Info().Msg("TLS config set")
+		s.logger.Debug().Msg("TLS config set")
 	}
 }
 
@@ -210,7 +210,7 @@ func WithAuthType(authentication mail.AuthType) Option {
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		s.server.Authentication = authentication
-		s.logger.Info().Int("authentication", int(authentication)).Msg("Authentication set")
+		s.logger.Debug().Int("authentication", int(authentication)).Msg("Authentication set")
 	}
 }
 
@@ -221,6 +221,6 @@ func WithHelo(helo string) Option {
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		s.server.Helo = helo
-		s.logger.Info().Str("helo", helo).Msg("HELO set")
+		s.logger.Debug().Str("helo", helo).Msg("HELO set")
 	}
 }

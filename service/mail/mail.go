@@ -131,7 +131,7 @@ func (s *Service) AddRecipients(recipients ...string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.recipients = append(s.recipients, recipients...)
-	s.logger.Info().Int("count", len(recipients)).Int("total", len(s.recipients)).Msg("Recipients added")
+	s.logger.Debug().Int("count", len(recipients)).Int("total", len(s.recipients)).Msg("Recipients added")
 }
 
 // AddCCRecipients appends given channel IDs onto an internal list that Send uses to distribute the notifications.
@@ -139,7 +139,7 @@ func (s *Service) AddCCRecipients(recipients ...string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.ccRecipients = append(s.ccRecipients, recipients...)
-	s.logger.Info().Int("count", len(recipients)).Int("total", len(s.ccRecipients)).Msg("CC Recipients added")
+	s.logger.Debug().Int("count", len(recipients)).Int("total", len(s.ccRecipients)).Msg("CC Recipients added")
 }
 
 // AddBCCRecipients appends given channel IDs onto an internal list that Send uses to distribute the notifications.
@@ -147,5 +147,5 @@ func (s *Service) AddBCCRecipients(recipients ...string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.bccRecipients = append(s.bccRecipients, recipients...)
-	s.logger.Info().Int("count", len(recipients)).Int("total", len(s.bccRecipients)).Msg("BCC Recipients added")
+	s.logger.Debug().Int("count", len(recipients)).Int("total", len(s.bccRecipients)).Msg("BCC Recipients added")
 }

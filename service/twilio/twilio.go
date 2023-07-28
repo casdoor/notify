@@ -89,5 +89,5 @@ func (s *Service) AddRecipients(phoneNumbers ...string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.phoneNumbers = append(s.phoneNumbers, phoneNumbers...)
-	s.logger.Info().Int("count", len(phoneNumbers)).Int("total", len(s.phoneNumbers)).Msg("Recipients added")
+	s.logger.Debug().Int("count", len(phoneNumbers)).Int("total", len(s.phoneNumbers)).Msg("Recipients added")
 }

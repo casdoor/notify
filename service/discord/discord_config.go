@@ -13,7 +13,7 @@ type Option = func(*Service)
 func WithClient(session *discordgo.Session) Option {
 	return func(s *Service) {
 		s.client.setSession(session)
-		s.logger.Info().Msg("Discord client set")
+		s.logger.Debug().Msg("Discord client set")
 	}
 }
 
@@ -22,7 +22,7 @@ func WithLogger(logger onelog.Logger) Option {
 	return func(s *Service) {
 		logger = logger.With("service", s.Name()) // Add service name to logger
 		s.logger = logger
-		s.logger.Info().Msg("Logger set")
+		s.logger.Debug().Msg("Logger set")
 	}
 }
 
@@ -31,7 +31,7 @@ func WithLogger(logger onelog.Logger) Option {
 func WithRecipients(recipients ...string) Option {
 	return func(s *Service) {
 		s.recipients = recipients
-		s.logger.Info().Int("count", len(recipients)).Int("total", len(s.recipients)).Msg("Recipients set")
+		s.logger.Debug().Int("count", len(recipients)).Int("total", len(s.recipients)).Msg("Recipients set")
 	}
 }
 
@@ -39,7 +39,7 @@ func WithRecipients(recipients ...string) Option {
 func WithName(name string) Option {
 	return func(s *Service) {
 		s.name = name
-		s.logger.Info().Str("name", name).Msg("Service name set")
+		s.logger.Debug().Str("name", name).Msg("Service name set")
 	}
 }
 
@@ -59,7 +59,7 @@ func WithName(name string) Option {
 func WithMessageRenderer(builder func(conf *SendConfig) string) Option {
 	return func(s *Service) {
 		s.renderMessage = builder
-		s.logger.Info().Msg("Message renderer set")
+		s.logger.Debug().Msg("Message renderer set")
 	}
 }
 
@@ -67,7 +67,7 @@ func WithMessageRenderer(builder func(conf *SendConfig) string) Option {
 func WithDryRun(dryRun bool) Option {
 	return func(s *Service) {
 		s.dryRun = dryRun
-		s.logger.Info().Bool("dry-run", dryRun).Msg("Dry run set")
+		s.logger.Debug().Bool("dry-run", dryRun).Msg("Dry run set")
 	}
 }
 
@@ -76,6 +76,6 @@ func WithDryRun(dryRun bool) Option {
 func WithContinueOnErr(continueOnErr bool) Option {
 	return func(s *Service) {
 		s.continueOnErr = continueOnErr
-		s.logger.Info().Bool("continue-on-error", continueOnErr).Msg("Continue on error set")
+		s.logger.Debug().Bool("continue-on-error", continueOnErr).Msg("Continue on error set")
 	}
 }

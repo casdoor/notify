@@ -11,7 +11,7 @@ type Option = func(*Service)
 func WithClient(client *slack.Client) Option {
 	return func(s *Service) {
 		s.client = client
-		s.logger.Info().Msg("Slack client set")
+		s.logger.Debug().Msg("Slack client set")
 	}
 }
 
@@ -19,7 +19,7 @@ func WithClient(client *slack.Client) Option {
 func WithRecipients(channelIDs ...string) Option {
 	return func(s *Service) {
 		s.channelIDs = channelIDs
-		s.logger.Info().Int("count", len(channelIDs)).Int("total", len(s.channelIDs)).Msg("Recipients set")
+		s.logger.Debug().Int("count", len(channelIDs)).Int("total", len(s.channelIDs)).Msg("Recipients set")
 	}
 }
 
@@ -27,7 +27,7 @@ func WithRecipients(channelIDs ...string) Option {
 func WithName(name string) Option {
 	return func(s *Service) {
 		s.name = name
-		s.logger.Info().Str("name", name).Msg("Service name set")
+		s.logger.Debug().Str("name", name).Msg("Service name set")
 	}
 }
 
@@ -47,7 +47,7 @@ func WithName(name string) Option {
 func WithMessageRenderer(builder func(conf *SendConfig) string) Option {
 	return func(s *Service) {
 		s.renderMessage = builder
-		s.logger.Info().Msg("Message renderer set")
+		s.logger.Debug().Msg("Message renderer set")
 	}
 }
 
@@ -55,7 +55,7 @@ func WithMessageRenderer(builder func(conf *SendConfig) string) Option {
 func WithDryRun(dryRun bool) Option {
 	return func(s *Service) {
 		s.dryRun = dryRun
-		s.logger.Info().Bool("dry-run", dryRun).Msg("Dry run set")
+		s.logger.Debug().Bool("dry-run", dryRun).Msg("Dry run set")
 	}
 }
 
@@ -64,7 +64,7 @@ func WithDryRun(dryRun bool) Option {
 func WithContinueOnErr(continueOnErr bool) Option {
 	return func(s *Service) {
 		s.continueOnErr = continueOnErr
-		s.logger.Info().Bool("continue-on-error", continueOnErr).Msg("Continue on error set")
+		s.logger.Debug().Bool("continue-on-error", continueOnErr).Msg("Continue on error set")
 	}
 }
 
@@ -72,6 +72,6 @@ func WithContinueOnErr(continueOnErr bool) Option {
 func WithEscapeMessage(escapeMessage bool) Option {
 	return func(s *Service) {
 		s.escapeMessage = escapeMessage
-		s.logger.Info().Bool("escapeMessage", escapeMessage).Msg("Escape message set")
+		s.logger.Debug().Bool("escapeMessage", escapeMessage).Msg("Escape message set")
 	}
 }
