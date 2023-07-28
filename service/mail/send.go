@@ -72,6 +72,12 @@ func (s *Service) send(ctx context.Context, conf *SendConfig) error {
 		s.logger.Info().Str("attachment", attachment.Name()).Msg("Attachment added")
 	}
 
+	// Quit early if dry run is enabled
+	if conf.DryRun {
+		s.logger.Info().Strs("recipients", s.recipients).Msg("Dry run enabled - Message not sent.")
+		return nil
+	}
+
 	// Send the email to the SMTP server.
 	if err := email.Send(s.client); err != nil {
 		return &notify.SendError{
@@ -100,11 +106,6 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 
 	if conf.Message == "" && len(conf.Attachments) == 0 {
 		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")
-		return nil
-	}
-
-	if conf.DryRun {
-		s.logger.Info().Str("message", conf.Message).Msg("Dry run enabled - Message not sent.")
 		return nil
 	}
 

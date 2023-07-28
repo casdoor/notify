@@ -24,7 +24,7 @@ func sendRequest(client *http.Client, req *http.Request) error {
 }
 
 func (s *Service) sendTextMessage(ctx context.Context, topic string, conf *SendConfig) error {
-	s.logger.Debug().Str("topic", topic).Msg("Sending text message to topic")
+	s.logger.Debug().Str("recipient", topic).Msg("Sending text message to topic")
 
 	payload := &sendMessageRequest{
 		Topic:       topic,
@@ -50,17 +50,24 @@ func (s *Service) sendTextMessage(ctx context.Context, topic string, conf *SendC
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+s.token)
 
+	// Quit early if dry run is enabled
+	if conf.DryRun {
+		s.logger.Info().Str("recipient", topic).Msg("Dry run enabled - Message not sent.")
+		return nil
+	}
+
+	// Send the message
 	if err := sendRequest(s.client, req); err != nil {
 		return err
 	}
 
-	s.logger.Info().Str("topic", topic).Msg("Text message sent to topic")
+	s.logger.Info().Str("recipient", topic).Msg("Text message sent to topic")
 
 	return nil
 }
 
-func (s *Service) sendFile(ctx context.Context, topic string, attachment notify.Attachment) error {
-	s.logger.Debug().Str("topic", topic).Str("file", attachment.Name()).Msg("Sending file to topic")
+func (s *Service) sendFile(ctx context.Context, topic string, conf *SendConfig, attachment notify.Attachment) error {
+	s.logger.Debug().Str("recipient", topic).Str("file", attachment.Name()).Msg("Sending file to topic")
 
 	// Append topic to base URL, e.g. https://ntfy.sh/my_topic
 	endpoint := s.apiBaseURL + topic
@@ -71,20 +78,26 @@ func (s *Service) sendFile(ctx context.Context, topic string, attachment notify.
 	}
 
 	req.Header.Set("Authorization", "Bearer "+s.token)
-	// req.Header.Set("X-Title", attachment.Name())
 
+	// Quit early if dry run is enabled
+	if conf.DryRun {
+		s.logger.Info().Str("recipient", topic).Str("file", attachment.Name()).Msg("Dry run enabled - File not sent.")
+		return nil
+	}
+
+	// Send the file
 	if err := sendRequest(s.client, req); err != nil {
 		return err
 	}
 
-	s.logger.Info().Str("topic", topic).Str("file", attachment.Name()).Msg("File sent to topic")
+	s.logger.Info().Str("recipient", topic).Str("file", attachment.Name()).Msg("File sent to topic")
 
 	return nil
 }
 
 func (s *Service) sendFileAttachments(ctx context.Context, topic string, conf *SendConfig) error {
 	for _, attachment := range conf.Attachments {
-		if err := s.sendFile(ctx, topic, attachment); err != nil {
+		if err := s.sendFile(ctx, topic, conf, attachment); err != nil {
 			return err
 		}
 	}
@@ -191,11 +204,6 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 
 	if conf.Message == "" && len(conf.Attachments) == 0 {
 		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")
-		return nil
-	}
-
-	if conf.DryRun {
-		s.logger.Info().Str("message", conf.Message).Msg("Dry run enabled - Message not sent.")
 		return nil
 	}
 

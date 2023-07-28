@@ -2,7 +2,6 @@ package twilio
 
 import (
 	"context"
-	"errors"
 
 	twilioApi "github.com/twilio/twilio-go/rest/api/v2010"
 
@@ -11,10 +10,6 @@ import (
 
 // sendToPhoneNumber sends a message to a chat. It returns an error if the message could not be sent.
 func (s *Service) sendToPhoneNumber(phoneNumber string, conf *SendConfig) error {
-	if conf == nil {
-		return errors.New("send config is nil")
-	}
-
 	s.logger.Debug().Str("recipient", phoneNumber).Msg("Sending text message to chat")
 
 	params := &twilioApi.CreateMessageParams{}
@@ -22,6 +17,13 @@ func (s *Service) sendToPhoneNumber(phoneNumber string, conf *SendConfig) error 
 	params.SetTo(phoneNumber)
 	params.SetBody(conf.Message)
 
+	// Quit early if dry run is enabled
+	if conf.DryRun {
+		s.logger.Info().Str("recipient", phoneNumber).Msg("Dry run enabled - Message not sent.")
+		return nil
+	}
+
+	// Send the message
 	if _, err := s.client.Api.CreateMessage(params); err != nil {
 		return err
 	}
@@ -76,6 +78,7 @@ func (s *Service) send(ctx context.Context, conf *SendConfig) error {
 			return ctx.Err()
 		}
 
+		// Send the message
 		if err := s.sendToPhoneNumber(phoneNumber, conf); err != nil {
 			handleError(phoneNumber, err) // Handle the error
 
@@ -122,11 +125,6 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 
 	if len(conf.Attachments) > 0 {
 		s.logger.Debug().Msg("Attachments are not supported by Twilio")
-	}
-
-	if conf.DryRun {
-		s.logger.Info().Str("message", conf.Message).Msg("Dry run enabled - Message not sent.")
-		return nil
 	}
 
 	// Send message to all recipients

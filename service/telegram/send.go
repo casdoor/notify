@@ -25,6 +25,13 @@ func (s *Service) sendTextMessage(chatID int64, conf *SendConfig) error {
 	message := telegram.NewMessage(chatID, conf.Message)
 	message.ParseMode = conf.ParseMode
 
+	// Quit early if dry run is enabled
+	if conf.DryRun {
+		s.logger.Info().Str("recipient", strconv.FormatInt(chatID, 10)).Msg("Dry run enabled - Message not sent.")
+		return nil
+	}
+
+	// Send the message
 	if _, err := s.client.Send(message); err != nil {
 		return err
 	}
@@ -61,6 +68,12 @@ func (s *Service) sendFile(chatID int64, conf *SendConfig, isFirst bool, attachm
 		document.ParseMode = conf.ParseMode
 	}
 
+	// Quit early if dry run is enabled
+	if conf.DryRun {
+		s.logger.Info().Str("recipient", strconv.FormatInt(chatID, 10)).Msg("Dry run enabled - Message not sent.")
+	}
+
+	// Send the file
 	if _, err := s.client.Send(document); err != nil {
 		return err
 	}
@@ -158,11 +171,6 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 
 	if conf.Message == "" && len(conf.Attachments) == 0 {
 		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")
-		return nil
-	}
-
-	if conf.DryRun {
-		s.logger.Info().Str("message", conf.Message).Msg("Dry run enabled - Message not sent.")
 		return nil
 	}
 

@@ -22,6 +22,13 @@ func (s *Service) sendFile(ctx context.Context, channelID string, conf *SendConf
 		params.InitialComment = conf.Message
 	}
 
+	// Quit early if dry run is enabled
+	if conf.DryRun {
+		s.logger.Info().Str("recipient", channelID).Str("file", attachment.Name()).Msg("Dry run enabled - File not sent.")
+		return nil
+	}
+
+	// Send the file
 	if _, err := s.client.UploadFileV2Context(ctx, params); err != nil {
 		return err
 	}
@@ -45,6 +52,13 @@ func (s *Service) sendFileAttachments(ctx context.Context, channelID string, con
 func (s *Service) sendTextMessage(ctx context.Context, channelID string, conf *SendConfig) error {
 	s.logger.Debug().Str("recipient", channelID).Msg("Sending text message to channel")
 
+	// Quit early if dry run is enabled
+	if conf.DryRun {
+		s.logger.Info().Str("recipient", channelID).Msg("Dry run enabled - Message not sent.")
+		return nil
+	}
+
+	// Send the message
 	if _, _, err := s.client.PostMessageContext(ctx, channelID, slack.MsgOptionText(conf.Message, conf.EscapeMessage)); err != nil {
 		return err
 	}
@@ -151,11 +165,6 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 
 	if conf.Message == "" && len(conf.Attachments) == 0 {
 		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")
-		return nil
-	}
-
-	if conf.DryRun {
-		s.logger.Info().Str("message", conf.Message).Msg("Dry run enabled - Message not sent.")
 		return nil
 	}
 

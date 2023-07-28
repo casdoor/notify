@@ -17,6 +17,12 @@ func (c *authClient) sendTo(recipient string, conf *SendConfig) error {
 	// Convert notify.Attachment to discordgo.File.
 	files := attachmentsToFiles(conf.Attachments)
 
+	// Quit early if dry run is enabled
+	if conf.DryRun {
+		c.logger.Info().Str("recipient", recipient).Msg("Dry run enabled - Message not sent.")
+		return nil
+	}
+
 	// Send message and attachments.
 	_, err := c.session.ChannelMessageSendComplex(recipient, &discordgo.MessageSend{
 		Content: conf.Message,
@@ -61,6 +67,13 @@ func (c *webhookClient) sendTo(recipient string, conf *SendConfig) error {
 	// Convert notify.Attachment to discordgo.File.
 	files := attachmentsToFiles(conf.Attachments)
 
+	// Quit early if dry run is enabled
+	if conf.DryRun {
+		c.logger.Info().Str("recipient", recipient).Msg("Dry run enabled - Message not sent.")
+		return nil
+	}
+
+	// Execute the webhook
 	_, err = c.session.WebhookExecute(webhookID, webhookToken, false, &discordgo.WebhookParams{
 		Content: conf.Message,
 		Files:   files,
@@ -159,11 +172,6 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 
 	if conf.Message == "" && len(conf.Attachments) == 0 {
 		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")
-		return nil
-	}
-
-	if conf.DryRun {
-		s.logger.Info().Str("message", conf.Message).Msg("Dry run enabled - Message not sent.")
 		return nil
 	}
 
