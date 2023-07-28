@@ -60,8 +60,6 @@ func newService(username, password, accountSid, phoneNumber string, opts ...Opti
 		name:              "twilio",
 		logger:            nopadapter.NewAdapter(),
 		renderMessage:     defaultMessageRenderer,
-		dryRun:            false,
-		continueOnErr:     false,
 		senderPhoneNumber: phoneNumber,
 	}
 
