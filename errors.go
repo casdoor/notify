@@ -56,23 +56,15 @@ func (e *BadRequestError) Unwrap() error {
 	return e.Cause
 }
 
-// SendNotificationError encapsulates any errors that occur when sending a notification.
-type SendNotificationError struct {
-	// Recipient is the identifier of the recipient that the notification failed to send to. Commonly an email address,
-	// phone number, user ID, or a webhook URL.
-	Recipient any
-	// Cause is the underlying error that caused the notification to fail.
-	Cause error
+// SendError encapsulates any errors that occur when sending a notification.
+type SendError struct {
+	FailedRecipients []string
+	Errors           []error
 }
 
-// Error provides the string representation of the SendNotificationError error.
-func (e *SendNotificationError) Error() string {
-	return fmt.Sprintf("failed to send notification to recipient %v: %v", e.Recipient, e.Cause)
-}
-
-// Unwrap retrieves the underlying error for the SendNotificationError error.
-func (e *SendNotificationError) Unwrap() error {
-	return e.Cause
+// Error provides the string representation of the SendError error.
+func (e *SendError) Error() string {
+	return fmt.Sprintf("sending failed for %d recipients", len(e.FailedRecipients))
 }
 
 // ServiceFailureError represents an error that occurs when a service fails.
