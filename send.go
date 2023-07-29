@@ -12,7 +12,7 @@ func (d *Dispatcher) Send(ctx context.Context, subject, message string, opts ...
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 
-	var eg errgroup.Group
+	eg, ctx := errgroup.WithContext(ctx)
 	for _, service := range d.services {
 		service := service
 
