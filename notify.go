@@ -94,7 +94,7 @@ type Attachment interface {
 func AttachmentFromReader(reader io.Reader, name, contentType string, inline bool) (Attachment, error) {
 	data, err := io.ReadAll(reader)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read data: %w", err)
+		return nil, fmt.Errorf("read data: %w", err)
 	}
 
 	size := int64(len(data))
@@ -112,7 +112,7 @@ func AttachmentFromReader(reader io.Reader, name, contentType string, inline boo
 func AttachmentFromFile(file *os.File, contentType string, inlined bool) (Attachment, error) {
 	stat, err := file.Stat()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get file info: %w", err)
+		return nil, fmt.Errorf("get file info: %w", err)
 	}
 
 	name := stat.Name()
@@ -124,7 +124,7 @@ func AttachmentFromFile(file *os.File, contentType string, inlined bool) (Attach
 func AttachmentFromPath(path string, contentType string, inlined bool) (Attachment, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open file: %w", err)
+		return nil, fmt.Errorf("open file: %w", err)
 	}
 	defer file.Close()
 
@@ -133,6 +133,8 @@ func AttachmentFromPath(path string, contentType string, inlined bool) (Attachme
 
 var _ Attachment = (*attachment)(nil)
 
+// attachment implements the Attachment interface. It's used to represent a file that can be attached to a notification
+// message.
 type attachment struct {
 	data        []byte
 	name        string
