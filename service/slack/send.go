@@ -12,8 +12,9 @@ func (s *Service) sendFile(ctx context.Context, channelID string, conf *SendConf
 	s.logger.Debug().Str("recipient", channelID).Str("file", attachment.Name()).Msg("Sending file to channel")
 
 	params := slack.UploadFileV2Parameters{
-		Reader:   attachment,
+		Reader:   attachment.Reader(),
 		Filename: attachment.Name(),
+		FileSize: int(attachment.Size()),
 		AltTxt:   attachment.Name(),
 		Channel:  channelID,
 	}

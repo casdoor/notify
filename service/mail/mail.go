@@ -33,13 +33,12 @@ type (
 		continueOnErr bool // no-op for Mail
 
 		// Mail specific
-		recipients        []string
-		ccRecipients      []string
-		bccRecipients     []string
-		parseMode         Mode
-		priority          Priority
-		senderName        string
-		inlineAttachments bool
+		recipients    []string
+		ccRecipients  []string
+		bccRecipients []string
+		parseMode     Mode
+		priority      Priority
+		senderName    string
 	}
 )
 

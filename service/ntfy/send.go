@@ -72,7 +72,7 @@ func (s *Service) sendFile(ctx context.Context, topic string, conf *SendConfig, 
 	// Append topic to base URL, e.g. https://ntfy.sh/my_topic
 	endpoint := s.apiBaseURL + topic
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, endpoint, attachment)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, endpoint, attachment.Reader())
 	if err != nil {
 		return err
 	}

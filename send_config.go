@@ -1,7 +1,5 @@
 package notify
 
-import "io"
-
 // SendConfig is used to configure the Send call.
 type SendConfig interface {
 	// SetAttachments sets attachments that can be sent alongside the message.
@@ -19,15 +17,6 @@ type SendConfig interface {
 
 // SendOption is a function that modifies the configuration of a Send call.
 type SendOption = func(SendConfig)
-
-// Attachment represents a file that can be attached to a notification message.
-type Attachment interface {
-	// Reader is used to read the contents of the attachment.
-	io.Reader
-
-	// Name is used as the filename when sending the attachment.
-	Name() string
-}
 
 // SendWithAttachments attaches the provided files to the message being sent.
 func SendWithAttachments(attachments ...Attachment) SendOption {

@@ -3,6 +3,7 @@ package mail
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 
 	mail "github.com/xhit/go-simple-mail/v2"
 
@@ -59,14 +60,17 @@ func (s *Service) send(ctx context.Context, conf *SendConfig) error {
 		s.logger.Debug().Str("attachment", attachment.Name()).Msg("Adding attachment")
 
 		buf := new(bytes.Buffer)
-		if _, err := buf.ReadFrom(attachment); err != nil {
+		if _, err := buf.ReadFrom(attachment.Reader()); err != nil {
 			return err
 		}
 
+		content := base64.StdEncoding.EncodeToString(buf.Bytes())
+
 		email.Attach(&mail.File{
-			Name:   attachment.Name(),
-			Data:   buf.Bytes(),
-			Inline: conf.InlineAttachments,
+			Name:     attachment.Name(),
+			B64Data:  content,
+			Inline:   attachment.Inline(),
+			MimeType: attachment.ContentType(),
 		})
 
 		s.logger.Info().Str("attachment", attachment.Name()).Msg("Attachment added")

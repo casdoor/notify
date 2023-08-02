@@ -50,8 +50,9 @@ func attachmentsToFiles(attachments []notify.Attachment) []*discordgo.File {
 	var files []*discordgo.File
 	for _, attachment := range attachments {
 		files = append(files, &discordgo.File{
-			Reader: attachment,
-			Name:   attachment.Name(),
+			Reader:      attachment.Reader(),
+			Name:        attachment.Name(),
+			ContentType: attachment.ContentType(),
 		})
 	}
 

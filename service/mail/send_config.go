@@ -24,10 +24,9 @@ type SendConfig struct {
 
 	// Mail specific fields
 
-	ParseMode         Mode
-	Priority          Priority
-	SenderName        string
-	InlineAttachments bool
+	ParseMode  Mode
+	Priority   Priority
+	SenderName string
 }
 
 // SetAttachments adds attachments to the message. This method is needed as part of the notify.SendConfig interface.
@@ -79,16 +78,6 @@ func SendWithSenderName(senderName string) notify.SendOption {
 	return func(config notify.SendConfig) {
 		if typedConf, ok := config.(*SendConfig); ok {
 			typedConf.SenderName = senderName
-		}
-	}
-}
-
-// SendWithInlineAttachments is a send option that sets whether attachments should be sent inline or not. If set to
-// true, attachments will be sent inline. This is a Mail specific option. The default is false.
-func SendWithInlineAttachments(inlineAttachments bool) notify.SendOption {
-	return func(config notify.SendConfig) {
-		if typedConf, ok := config.(*SendConfig); ok {
-			typedConf.InlineAttachments = inlineAttachments
 		}
 	}
 }

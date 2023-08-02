@@ -143,16 +143,6 @@ func WithSenderName(name string) Option {
 	}
 }
 
-// WithInlineAttachments sets the inline attachments option on the Mail server. The default is false.
-func WithInlineAttachments(inline bool) Option {
-	return func(s *Service) {
-		s.mu.Lock()
-		defer s.mu.Unlock()
-		s.inlineAttachments = inline
-		s.logger.Debug().Bool("inline", inline).Msg("Inline attachments set")
-	}
-}
-
 // WithKeepAlive sets the keep alive option on the Mail server. KeepAlive is enabled by default.
 func WithKeepAlive(keepAlive bool) Option {
 	return func(s *Service) {

@@ -58,7 +58,7 @@ func (s *Service) sendFile(chatID int64, conf *SendConfig, isFirst bool, attachm
 	s.logger.Debug().Int64("recipient", chatID).Str("file", attachment.Name()).Msg("Sending file to chat")
 
 	document := telegram.NewDocument(chatID, telegram.FileReader{
-		Reader: attachment,
+		Reader: attachment.Reader(),
 		Name:   attachment.Name(),
 	})
 
