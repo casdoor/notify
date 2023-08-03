@@ -79,25 +79,6 @@ func (s *Service) sendToChannel(ctx context.Context, channelID string, conf *Sen
 	return s.sendFileAttachments(ctx, channelID, conf)
 }
 
-// newSendConfig creates a new send config with default values.
-func (s *Service) newSendConfig(subject, message string, opts ...notify.SendOption) *SendConfig {
-	conf := &SendConfig{
-		Subject:       subject,
-		Message:       message,
-		DryRun:        s.dryRun,
-		ContinueOnErr: s.continueOnErr,
-		EscapeMessage: s.escapeMessage,
-	}
-
-	for _, opt := range opts {
-		opt(conf)
-	}
-
-	conf.Message = s.renderMessage(conf)
-
-	return conf
-}
-
 // The function 'send' is responsible for the process of sending a message to every recipient in the list.
 //
 // For each recipient, it checks if context was cancelled. If yes, it immediately returns the error from context. If

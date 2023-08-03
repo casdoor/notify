@@ -45,3 +45,21 @@ func (c *SendConfig) SetDryRun(dryRun bool) {
 func (c *SendConfig) SetContinueOnErr(continueOnErr bool) {
 	c.ContinueOnErr = continueOnErr
 }
+
+// newSendConfig creates a new send config with default values.
+func (s *Service) newSendConfig(subject, message string, opts ...notify.SendOption) *SendConfig {
+	conf := &SendConfig{
+		Subject:       subject,
+		Message:       message,
+		DryRun:        s.dryRun,
+		ContinueOnErr: s.continueOnErr,
+	}
+
+	for _, opt := range opts {
+		opt(conf)
+	}
+
+	conf.Message = s.renderMessage(conf)
+
+	return conf
+}

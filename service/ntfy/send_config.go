@@ -98,3 +98,26 @@ func SendWithClickAction(clickAction string) notify.SendOption {
 		}
 	}
 }
+
+// newSendConfig creates a new send config with default values.
+func (s *Service) newSendConfig(subject, message string, opts ...notify.SendOption) *SendConfig {
+	conf := &SendConfig{
+		Subject:       subject,
+		Message:       message,
+		DryRun:        s.dryRun,
+		ContinueOnErr: s.continueOnErr,
+		ParseMode:     s.parseMode,
+		Priority:      s.priority,
+		Tags:          s.tags,
+		Delay:         s.delay,
+		ClickAction:   s.clickAction,
+	}
+
+	for _, opt := range opts {
+		opt(conf)
+	}
+
+	conf.Message = s.renderMessage(conf)
+
+	return conf
+}
