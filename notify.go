@@ -143,10 +143,6 @@ type attachment struct {
 	inline      bool
 }
 
-func (a *attachment) Read(p []byte) (n int, err error) {
-	return bytes.NewReader(a.data).Read(p)
-}
-
 func (a *attachment) Reader() io.Reader {
 	return bytes.NewReader(a.data)
 }
