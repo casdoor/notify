@@ -56,6 +56,23 @@ func (e *BadRequestError) Unwrap() error {
 	return e.Cause
 }
 
+// ExternalServerError indicates that the remote service encountered an error. This is a generic error that should be
+// used when the remote service does not provide a more specific error.
+type ExternalServerError struct {
+	// Cause is the underlying error that caused the external server error.
+	Cause error
+}
+
+// Error provides the string representation of the ExternalServerError error.
+func (e *ExternalServerError) Error() string {
+	return fmt.Sprintf("external server error: %v", e.Cause)
+}
+
+// Unwrap retrieves the underlying error for the ExternalServerError error.
+func (e *ExternalServerError) Unwrap() error {
+	return e.Cause
+}
+
 // SendError encapsulates any errors that occur when sending a notification.
 type SendError struct {
 	FailedRecipients []string
