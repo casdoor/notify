@@ -27,7 +27,7 @@ type SendConfig struct {
 	SenderAddress        string
 	ParseMode            Mode
 	Domain               string
-	Header               map[string]string
+	Headers              map[string]string
 	Tags                 []string
 	SetDKIM              bool
 	EnableNativeSend     bool
@@ -89,11 +89,11 @@ func SendWithDomain(domain string) notify.SendOption {
 	}
 }
 
-// SendWithHeader sets the header of the message.
-func SendWithHeader(header map[string]string) notify.SendOption {
+// SendWithHeaders sets the header of the message.
+func SendWithHeaders(headers map[string]string) notify.SendOption {
 	return func(config notify.SendConfig) {
 		if typedConf, ok := config.(*SendConfig); ok {
-			typedConf.Header = header
+			typedConf.Headers = headers
 		}
 	}
 }
@@ -189,7 +189,7 @@ func (s *Service) newSendConfig(subject, message string, opts ...notify.SendOpti
 		SenderAddress:        s.senderAddress,
 		ParseMode:            s.parseMode,
 		Domain:               s.domain,
-		Header:               s.headers,
+		Headers:              s.headers,
 		Tags:                 s.tags,
 		SetDKIM:              s.setDKIM,
 		EnableNativeSend:     s.enableNativeSend,

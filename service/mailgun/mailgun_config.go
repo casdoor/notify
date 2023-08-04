@@ -120,11 +120,11 @@ func WithDomain(domain string) Option {
 	}
 }
 
-// WithHeader assigns custom MIME headers to the message being sent.
-func WithHeader(header map[string]string) Option {
+// WithHeaders assigns custom MIME headers to the message being sent.
+func WithHeaders(headers map[string]string) Option {
 	return func(s *Service) {
-		s.headers = header
-		s.logger.Debug().Int("count", len(header)).Msg("Header set")
+		s.headers = headers
+		s.logger.Debug().Int("count", len(headers)).Msg("Header set")
 	}
 }
 
