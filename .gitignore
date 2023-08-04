@@ -26,6 +26,9 @@ service/**
 !service/mail/
 !service/mail/**
 
+!service/mailgun/
+!service/mailgun/**
+
 !service/ntfy/
 !service/ntfy/**
 
