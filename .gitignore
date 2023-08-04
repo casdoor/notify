@@ -32,6 +32,9 @@ service/**
 !service/ntfy/
 !service/ntfy/**
 
+!service/sendgrid/
+!service/sendgrid/**
+
 !service/slack/
 !service/slack/**
 

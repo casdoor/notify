@@ -7,6 +7,8 @@ require (
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/mailgun/mailgun-go/v4 v4.10.0
 	github.com/nikoksr/onelog v0.6.0
+	github.com/sendgrid/rest v2.6.9+incompatible
+	github.com/sendgrid/sendgrid-go v3.12.0+incompatible
 	github.com/slack-go/slack v0.12.2
 	github.com/twilio/twilio-go v1.10.1
 	github.com/xhit/go-simple-mail/v2 v2.15.1-0.20230717202541-47471be93271
