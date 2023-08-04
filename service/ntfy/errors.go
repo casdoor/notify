@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/nikoksr/notify/v2"
+	"github.com/nikoksr/notify/v2/internal/httperror"
 )
 
 func asNotifyError(resp *http.Response) error {
@@ -18,20 +18,6 @@ func asNotifyError(resp *http.Response) error {
 	// Interpret the response body as an error message
 	err = errors.New(strings.TrimSpace(string(b)))
 
-	// Check the status code and return the appropriate error
-	switch resp.StatusCode {
-	case http.StatusOK:
-		// Success
-		return nil
-	case http.StatusUnauthorized, http.StatusForbidden:
-		// Unauthorized
-		return &notify.UnauthorizedError{Cause: err}
-	case http.StatusTooManyRequests:
-		// Rate limit
-		return &notify.RateLimitError{Cause: err}
-	default:
-	}
-
-	// Return a generic bad request error if none of the above matched
-	return err
+	// Use the http status code to determine the appropriate Notify error
+	return httperror.HandleHTTPError(err, resp.StatusCode)
 }

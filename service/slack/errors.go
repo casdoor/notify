@@ -2,12 +2,27 @@ package slack
 
 import (
 	"errors"
-	"net/http"
+	"fmt"
 
 	"github.com/slack-go/slack"
 
+	"github.com/nikoksr/notify/v2/internal/httperror"
+
 	"github.com/nikoksr/notify/v2"
 )
+
+func slackErrorResponseToError(err *slack.SlackErrorResponse) error {
+	if err == nil {
+		return nil
+	}
+
+	errMsg := err.Error()
+	for _, message := range err.ResponseMetadata.Warnings {
+		errMsg += fmt.Sprintf(": %s", message)
+	}
+
+	return errors.New(errMsg)
+}
 
 func asNotifyError(err error) error {
 	if err == nil {
@@ -20,16 +35,21 @@ func asNotifyError(err error) error {
 		return &notify.RateLimitError{Cause: err}
 	}
 
-	var statusCodeErr *slack.StatusCodeError
-	if errors.As(err, &statusCodeErr) {
-		switch statusCodeErr.Code {
-		case http.StatusUnauthorized, http.StatusForbidden:
-			// Unauthorized
-			return &notify.UnauthorizedError{Cause: err}
-		default:
-		}
+	// Check for common errors first
+
+	var httpErr *slack.StatusCodeError
+	if errors.As(err, &httpErr) {
+		err = errors.New(httpErr.Error())
+
+		// Use the http status code to determine the appropriate Notify error
+		return httperror.HandleHTTPError(err, httpErr.Code)
 	}
 
-	// If none of the above matched, return a generic bad request error
+	var apiErr *slack.SlackErrorResponse
+	if errors.As(err, &apiErr) {
+		return slackErrorResponseToError(apiErr)
+	}
+
+	// Unable to determine error type
 	return &notify.BadRequestError{Cause: err}
 }
