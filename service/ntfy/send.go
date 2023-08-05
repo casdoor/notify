@@ -49,7 +49,7 @@ func (s *Service) newSendMessageRequest(ctx context.Context, payload *sendMessag
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+s.token)
+	req.Header.Set("Authorization", "Bearer "+s.apiKey)
 
 	return req, nil
 }
@@ -82,7 +82,7 @@ func (s *Service) sendTextMessage(ctx context.Context, topic string, conf *SendC
 	return nil
 }
 
-func (s *Service) newSendFileRequest(ctx context.Context, topic string, attachment notify.Attachment) (*http.Request, error) {
+func (s *Service) newSendFileRequest(ctx context.Context, apiKey, topic string, attachment notify.Attachment) (*http.Request, error) {
 	// Append topic to base URL, e.g. https://ntfy.sh/my_topic
 	endpoint := s.apiBaseURL + topic
 
@@ -91,7 +91,7 @@ func (s *Service) newSendFileRequest(ctx context.Context, topic string, attachme
 		return nil, err
 	}
 
-	req.Header.Set("Authorization", "Bearer "+s.token)
+	req.Header.Set("Authorization", "Bearer "+apiKey)
 
 	return req, nil
 }
@@ -100,7 +100,7 @@ func (s *Service) sendFile(ctx context.Context, topic string, conf *SendConfig, 
 	s.logger.Debug().Str("recipient", topic).Str("file", attachment.Name()).Msg("Sending file to topic")
 
 	// Create request
-	req, err := s.newSendFileRequest(ctx, topic, attachment)
+	req, err := s.newSendFileRequest(ctx, conf.APIKey, topic, attachment)
 	if err != nil {
 		return fmt.Errorf("create request: %w", err)
 	}
@@ -160,7 +160,7 @@ func (s *Service) send(ctx context.Context, conf *SendConfig) error {
 		s.logger.Warn().Err(err).Str("recipient", topic).Msg("Error sending message to recipient")
 	}
 
-	for _, topic := range s.topics {
+	for _, topic := range conf.Recipients {
 		// If context is cancelled, return error immediately
 		if ctx.Err() != nil {
 			return ctx.Err()
@@ -198,12 +198,12 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	if len(s.topics) == 0 {
-		return notify.ErrNoRecipients
-	}
-
 	// Create new send config from service's default values and passed options
 	conf := s.newSendConfig(subject, message, opts...)
+
+	if len(conf.Recipients) == 0 {
+		return notify.ErrNoRecipients
+	}
 
 	if conf.Message == "" && len(conf.Attachments) == 0 {
 		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")

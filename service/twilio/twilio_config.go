@@ -73,8 +73,8 @@ func WithContinueOnErr(continueOnErr bool) Option {
 // WithRecipients sets the recipients that should receive messages. You can add more recipients by calling AddRecipients.
 func WithRecipients(phoneNumbers ...string) Option {
 	return func(s *Service) {
-		s.phoneNumbers = phoneNumbers
-		s.logger.Debug().Int("count", len(phoneNumbers)).Int("total", len(s.phoneNumbers)).Msg("Recipients set")
+		s.recipients = phoneNumbers
+		s.logger.Debug().Int("count", len(phoneNumbers)).Int("total", len(s.recipients)).Msg("Recipients set")
 	}
 }
 

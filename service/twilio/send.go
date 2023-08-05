@@ -10,7 +10,7 @@ import (
 
 func (s *Service) buildMessagePayload(phoneNumber string, conf *SendConfig) *twilioApi.CreateMessageParams {
 	params := &twilioApi.CreateMessageParams{}
-	params.SetFrom(s.senderPhoneNumber)
+	params.SetFrom(conf.SenderPhoneNumber)
 	params.SetTo(phoneNumber)
 	params.SetBody(conf.Message)
 
@@ -61,7 +61,7 @@ func (s *Service) send(ctx context.Context, conf *SendConfig) error {
 		s.logger.Warn().Err(err).Str("recipient", phoneNumber).Msg("Error sending message to recipient")
 	}
 
-	for _, phoneNumber := range s.phoneNumbers {
+	for _, phoneNumber := range conf.Recipients {
 		// If context is cancelled, return error immediately
 		if ctx.Err() != nil {
 			return ctx.Err()
@@ -100,12 +100,12 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	if len(s.phoneNumbers) == 0 {
-		return notify.ErrNoRecipients
-	}
-
 	// Create new send config from service's default values and passed options
 	conf := s.newSendConfig(subject, message, opts...)
+
+	if len(conf.Recipients) == 0 {
+		return notify.ErrNoRecipients
+	}
 
 	if conf.Message == "" && len(conf.Attachments) == 0 {
 		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")

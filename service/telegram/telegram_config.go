@@ -73,8 +73,8 @@ func WithContinueOnErr(continueOnErr bool) Option {
 // WithRecipients sets the recipients that should receive messages. You can add more recipients by calling AddRecipients.
 func WithRecipients(chatIDs ...int64) Option {
 	return func(s *Service) {
-		s.chatIDs = chatIDs
-		s.logger.Debug().Int("count", len(chatIDs)).Int("total", len(s.chatIDs)).Msg("Recipients set")
+		s.recipients = chatIDs
+		s.logger.Debug().Int("count", len(chatIDs)).Int("total", len(s.recipients)).Msg("Recipients set")
 	}
 }
 

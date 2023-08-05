@@ -38,7 +38,7 @@ type Service struct {
 
 	// Slack specific
 
-	channelIDs    []string
+	recipients    []string
 	escapeMessage bool
 }
 
@@ -78,6 +78,6 @@ func (s *Service) Name() string {
 func (s *Service) AddRecipients(channelIDs ...string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.channelIDs = append(s.channelIDs, channelIDs...)
-	s.logger.Debug().Int("count", len(channelIDs)).Int("total", len(s.channelIDs)).Msg("Recipients added")
+	s.recipients = append(s.recipients, channelIDs...)
+	s.logger.Debug().Int("count", len(channelIDs)).Int("total", len(s.recipients)).Msg("Recipients added")
 }

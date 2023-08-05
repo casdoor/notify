@@ -82,8 +82,8 @@ func WithAPIBaseURL(url string) Option {
 // WithRecipients sets the recipients that should receive messages. You can add more recipients by calling AddRecipients.
 func WithRecipients(topics ...string) Option {
 	return func(s *Service) {
-		s.topics = topics
-		s.logger.Debug().Int("count", len(topics)).Int("total", len(s.topics)).Msg("Recipients set")
+		s.recipients = topics
+		s.logger.Debug().Int("count", len(topics)).Int("total", len(s.recipients)).Msg("Recipients set")
 	}
 }
 

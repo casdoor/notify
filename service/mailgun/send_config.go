@@ -2,11 +2,11 @@ package mailgun
 
 import "github.com/nikoksr/notify/v2"
 
-var _ notify.SendConfig = (*SendConfig)(nil)
+var _ notify.SendConfigurer = (*SendConfig)(nil)
 
 // SendConfig represents the configuration needed for sending a message.
 //
-// This struct complies with the notify.SendConfig interface and allows you to alter
+// This struct complies with the notify.SendConfigurer interface and allows you to alter
 // the behavior of the send function. This can be achieved by either passing send options
 // to the send function or by manipulating the fields of this struct in your custom
 // message renderer.
@@ -15,16 +15,14 @@ var _ notify.SendConfig = (*SendConfig)(nil)
 // However, users must be aware that they are responsible for managing thread-safety
 // and other similar concerns when manipulating these fields directly.
 type SendConfig struct {
-	Subject       string
-	Message       string
-	Attachments   []notify.Attachment
-	Metadata      map[string]any
-	DryRun        bool
-	ContinueOnErr bool
+	*notify.SendConfig
 
 	// Mailgun specific
 
 	SenderAddress        string
+	Recipients           []string
+	CCRecipients         []string
+	BCCRecipients        []string
 	ParseMode            Mode
 	Domain               string
 	Headers              map[string]string
@@ -39,41 +37,45 @@ type SendConfig struct {
 	EnableTrackingOpens  bool
 }
 
-// SetAttachments adds attachments to the message. This method is needed as part of the notify.SendConfig interface.
-func (c *SendConfig) SetAttachments(attachments ...notify.Attachment) {
-	c.Attachments = attachments
-}
-
-// SetMetadata sets the metadata of the message. This method is needed as part of the notify.SendConfig interface.
-func (c *SendConfig) SetMetadata(metadata map[string]any) {
-	c.Metadata = metadata
-}
-
-// SetDryRun sets the dry run flag of the message. This method is needed as part of the notify.SendConfig interface.
-func (c *SendConfig) SetDryRun(dryRun bool) {
-	c.DryRun = dryRun
-}
-
-// SetContinueOnErr sets the continue on error flag of the message. This method is needed as part of the
-// notify.SendConfig interface.
-func (c *SendConfig) SetContinueOnErr(continueOnErr bool) {
-	c.ContinueOnErr = continueOnErr
-}
-
-// Send options
-
 // SendWithSenderAddress sets the sender address of the message.
 func SendWithSenderAddress(senderAddress string) notify.SendOption {
-	return func(config notify.SendConfig) {
+	return func(config notify.SendConfigurer) {
 		if typedConf, ok := config.(*SendConfig); ok {
 			typedConf.SenderAddress = senderAddress
 		}
 	}
 }
 
+// SendWithRecipients sets the recipients of the message.
+func SendWithRecipients(recipients ...string) notify.SendOption {
+	return func(config notify.SendConfigurer) {
+		if typedConf, ok := config.(*SendConfig); ok {
+			typedConf.Recipients = recipients
+		}
+	}
+}
+
+// SendWithCCRecipients sets the CC recipients of the message.
+func SendWithCCRecipients(ccRecipients ...string) notify.SendOption {
+	return func(config notify.SendConfigurer) {
+		if typedConf, ok := config.(*SendConfig); ok {
+			typedConf.CCRecipients = ccRecipients
+		}
+	}
+}
+
+// SendWithBCCRecipients sets the BCC recipients of the message.
+func SendWithBCCRecipients(bccRecipients ...string) notify.SendOption {
+	return func(config notify.SendConfigurer) {
+		if typedConf, ok := config.(*SendConfig); ok {
+			typedConf.BCCRecipients = bccRecipients
+		}
+	}
+}
+
 // SendWithParseMode sets the parse mode of the message.
 func SendWithParseMode(mode Mode) notify.SendOption {
-	return func(config notify.SendConfig) {
+	return func(config notify.SendConfigurer) {
 		if typedConf, ok := config.(*SendConfig); ok {
 			typedConf.ParseMode = mode
 		}
@@ -82,7 +84,7 @@ func SendWithParseMode(mode Mode) notify.SendOption {
 
 // SendWithDomain sets the domain of the message.
 func SendWithDomain(domain string) notify.SendOption {
-	return func(config notify.SendConfig) {
+	return func(config notify.SendConfigurer) {
 		if typedConf, ok := config.(*SendConfig); ok {
 			typedConf.Domain = domain
 		}
@@ -91,7 +93,7 @@ func SendWithDomain(domain string) notify.SendOption {
 
 // SendWithHeaders sets the header of the message.
 func SendWithHeaders(headers map[string]string) notify.SendOption {
-	return func(config notify.SendConfig) {
+	return func(config notify.SendConfigurer) {
 		if typedConf, ok := config.(*SendConfig); ok {
 			typedConf.Headers = headers
 		}
@@ -100,7 +102,7 @@ func SendWithHeaders(headers map[string]string) notify.SendOption {
 
 // SendWithTags sets the tags of the message.
 func SendWithTags(tags []string) notify.SendOption {
-	return func(config notify.SendConfig) {
+	return func(config notify.SendConfigurer) {
 		if typedConf, ok := config.(*SendConfig); ok {
 			typedConf.Tags = tags
 		}
@@ -109,7 +111,7 @@ func SendWithTags(tags []string) notify.SendOption {
 
 // SendWithSetDKIM sets the DKIM flag of the message.
 func SendWithSetDKIM(setDKIM bool) notify.SendOption {
-	return func(config notify.SendConfig) {
+	return func(config notify.SendConfigurer) {
 		if typedConf, ok := config.(*SendConfig); ok {
 			typedConf.SetDKIM = setDKIM
 		}
@@ -118,7 +120,7 @@ func SendWithSetDKIM(setDKIM bool) notify.SendOption {
 
 // SendWithEnableNativeSend sets the native send flag of the message.
 func SendWithEnableNativeSend(enableNativeSend bool) notify.SendOption {
-	return func(config notify.SendConfig) {
+	return func(config notify.SendConfigurer) {
 		if typedConf, ok := config.(*SendConfig); ok {
 			typedConf.EnableNativeSend = enableNativeSend
 		}
@@ -127,7 +129,7 @@ func SendWithEnableNativeSend(enableNativeSend bool) notify.SendOption {
 
 // SendWithRequireTLS sets the TLS flag of the message.
 func SendWithRequireTLS(requireTLS bool) notify.SendOption {
-	return func(config notify.SendConfig) {
+	return func(config notify.SendConfigurer) {
 		if typedConf, ok := config.(*SendConfig); ok {
 			typedConf.RequireTLS = requireTLS
 		}
@@ -136,7 +138,7 @@ func SendWithRequireTLS(requireTLS bool) notify.SendOption {
 
 // SendWithSkipVerification sets the verification flag of the message.
 func SendWithSkipVerification(skipVerification bool) notify.SendOption {
-	return func(config notify.SendConfig) {
+	return func(config notify.SendConfigurer) {
 		if typedConf, ok := config.(*SendConfig); ok {
 			typedConf.SkipVerification = skipVerification
 		}
@@ -145,7 +147,7 @@ func SendWithSkipVerification(skipVerification bool) notify.SendOption {
 
 // SendWithEnableTestMode sets the test mode flag of the message.
 func SendWithEnableTestMode(enableTestMode bool) notify.SendOption {
-	return func(config notify.SendConfig) {
+	return func(config notify.SendConfigurer) {
 		if typedConf, ok := config.(*SendConfig); ok {
 			typedConf.EnableTestMode = enableTestMode
 		}
@@ -154,7 +156,7 @@ func SendWithEnableTestMode(enableTestMode bool) notify.SendOption {
 
 // SendWithEnableTracking sets the tracking flag of the message.
 func SendWithEnableTracking(enableTracking bool) notify.SendOption {
-	return func(config notify.SendConfig) {
+	return func(config notify.SendConfigurer) {
 		if typedConf, ok := config.(*SendConfig); ok {
 			typedConf.EnableTracking = enableTracking
 		}
@@ -163,7 +165,7 @@ func SendWithEnableTracking(enableTracking bool) notify.SendOption {
 
 // SendWithEnableTrackingClicks sets the tracking clicks flag of the message.
 func SendWithEnableTrackingClicks(enableTrackingClicks bool) notify.SendOption {
-	return func(config notify.SendConfig) {
+	return func(config notify.SendConfigurer) {
 		if typedConf, ok := config.(*SendConfig); ok {
 			typedConf.EnableTrackingClicks = enableTrackingClicks
 		}
@@ -172,7 +174,7 @@ func SendWithEnableTrackingClicks(enableTrackingClicks bool) notify.SendOption {
 
 // SendWithEnableTrackingOpens sets the tracking opens flag of the message.
 func SendWithEnableTrackingOpens(enableTrackingOpens bool) notify.SendOption {
-	return func(config notify.SendConfig) {
+	return func(config notify.SendConfigurer) {
 		if typedConf, ok := config.(*SendConfig); ok {
 			typedConf.EnableTrackingOpens = enableTrackingOpens
 		}
@@ -182,11 +184,16 @@ func SendWithEnableTrackingOpens(enableTrackingOpens bool) notify.SendOption {
 // newSendConfig creates a new send config with default values.
 func (s *Service) newSendConfig(subject, message string, opts ...notify.SendOption) *SendConfig {
 	conf := &SendConfig{
-		Subject:              subject,
-		Message:              message,
-		DryRun:               s.dryRun,
-		ContinueOnErr:        s.continueOnErr,
+		SendConfig: &notify.SendConfig{
+			Subject:       subject,
+			Message:       message,
+			DryRun:        s.dryRun,
+			ContinueOnErr: s.continueOnErr,
+		},
 		SenderAddress:        s.senderAddress,
+		Recipients:           s.recipients,
+		CCRecipients:         s.ccRecipients,
+		BCCRecipients:        s.bccRecipients,
 		ParseMode:            s.parseMode,
 		Domain:               s.domain,
 		Headers:              s.headers,

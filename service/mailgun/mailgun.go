@@ -45,7 +45,7 @@ type Service struct {
 	logger        onelog.Logger
 	renderMessage func(conf *SendConfig) string
 	dryRun        bool
-	continueOnErr bool
+	continueOnErr bool // no-op for mailgun
 
 	// Mailgun specific
 

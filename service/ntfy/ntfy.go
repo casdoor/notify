@@ -75,8 +75,8 @@ type Service struct {
 
 	// Ntfy specific
 	apiBaseURL  string
-	token       string
-	topics      []string
+	apiKey      string
+	recipients  []string
 	parseMode   Mode
 	priority    Priority
 	tags        []string
@@ -94,12 +94,12 @@ func (s *Service) applyOptions(opts ...Option) {
 }
 
 // New creates a new ntfy service. It returns an error if the ntfy client could not be created.
-func New(token string, opts ...Option) (*Service, error) {
+func New(apiKey string, opts ...Option) (*Service, error) {
 	s := &Service{
 		client:        http.DefaultClient,
 		logger:        nopadapter.NewAdapter(),
 		name:          "ntfy",
-		token:         token,
+		apiKey:        apiKey,
 		renderMessage: defaultMessageRenderer,
 		apiBaseURL:    defaultAPIBaseURL,
 		parseMode:     ModeText,
@@ -120,6 +120,6 @@ func (s *Service) Name() string {
 func (s *Service) AddRecipients(topics ...string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.topics = append(s.topics, topics...)
-	s.logger.Debug().Int("count", len(topics)).Int("total", len(s.topics)).Msg("Recipients added")
+	s.recipients = append(s.recipients, topics...)
+	s.logger.Debug().Int("count", len(topics)).Int("total", len(s.recipients)).Msg("Recipients added")
 }

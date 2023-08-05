@@ -43,8 +43,8 @@ type Service struct {
 
 	// Telegram specific
 
-	chatIDs   []int64
-	parseMode string
+	recipients []int64
+	parseMode  string
 }
 
 func (s *Service) applyOptions(opts ...Option) {
@@ -84,6 +84,6 @@ func (s *Service) Name() string {
 func (s *Service) AddRecipients(chatIDs ...int64) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.chatIDs = append(s.chatIDs, chatIDs...)
-	s.logger.Debug().Int("count", len(chatIDs)).Int("total", len(s.chatIDs)).Msg("Recipients added")
+	s.recipients = append(s.recipients, chatIDs...)
+	s.logger.Debug().Int("count", len(chatIDs)).Int("total", len(s.recipients)).Msg("Recipients added")
 }

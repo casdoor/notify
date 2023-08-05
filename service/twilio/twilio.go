@@ -37,7 +37,7 @@ type Service struct {
 	// Twilio specific
 
 	senderPhoneNumber string
-	phoneNumbers      []string
+	recipients        []string
 }
 
 func (s *Service) applyOptions(opts ...Option) {
@@ -87,6 +87,6 @@ func (s *Service) Name() string {
 func (s *Service) AddRecipients(phoneNumbers ...string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.phoneNumbers = append(s.phoneNumbers, phoneNumbers...)
-	s.logger.Debug().Int("count", len(phoneNumbers)).Int("total", len(s.phoneNumbers)).Msg("Recipients added")
+	s.recipients = append(s.recipients, phoneNumbers...)
+	s.logger.Debug().Int("count", len(phoneNumbers)).Int("total", len(s.recipients)).Msg("Recipients added")
 }

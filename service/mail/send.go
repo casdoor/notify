@@ -14,11 +14,11 @@ import (
 func (s *Service) buildEmailPayload(conf *SendConfig) (*mail.Email, error) {
 	// Create a new email message.
 	email := mail.NewMSG().
-		SetFrom(s.senderName).
-		AddTo(s.recipients...).
-		AddCc(s.ccRecipients...).
-		AddBcc(s.bccRecipients...).
-		SetPriority(mail.Priority(s.priority)).
+		SetFrom(conf.SenderName).
+		AddTo(conf.Recipients...).
+		AddCc(conf.CCRecipients...).
+		AddBcc(conf.BCCRecipients...).
+		SetPriority(mail.Priority(conf.Priority)).
 		SetSubject(conf.Subject).
 		SetBody(mail.ContentType(conf.ParseMode),
 			conf.Message,
@@ -94,12 +94,12 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if len(s.recipients) == 0 {
-		return notify.ErrNoRecipients
-	}
-
 	// Create new send config from service's default values and passed options
 	conf := s.newSendConfig(subject, message, opts...)
+
+	if len(conf.Recipients) == 0 {
+		return notify.ErrNoRecipients
+	}
 
 	if conf.Message == "" && len(conf.Attachments) == 0 {
 		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")

@@ -15,27 +15,27 @@ func (s *Service) buildEmailPayload(conf *SendConfig) (*mailgun.Message, error) 
 		conf.SenderAddress,
 		conf.Subject,
 		conf.Message,
-		s.recipients...,
+		conf.Recipients...,
 	)
 
-	for _, cc := range s.ccRecipients {
+	for _, cc := range conf.CCRecipients {
 		email.AddCC(cc)
 	}
 
-	for _, bcc := range s.bccRecipients {
+	for _, bcc := range conf.BCCRecipients {
 		email.AddBCC(bcc)
 	}
 
 	// Domain: string
-	email.AddDomain(s.domain)
+	email.AddDomain(conf.Domain)
 
 	// Set headers
-	for k, v := range s.headers {
+	for k, v := range conf.Headers {
 		email.AddHeader(k, v)
 	}
 
 	// Set tags
-	for _, tag := range s.tags {
+	for _, tag := range conf.Tags {
 		if err := email.AddTag(tag); err != nil {
 			return nil, fmt.Errorf("add tags: %w", err)
 		}
@@ -104,7 +104,7 @@ func (s *Service) send(ctx context.Context, conf *SendConfig) error {
 
 	// Quit early if dry run is enabled
 	if conf.DryRun {
-		s.logger.Info().Strs("recipients", s.recipients).Msg("Dry run enabled - Message not sent.")
+		s.logger.Info().Strs("recipients", conf.Recipients).Msg("Dry run enabled - Message not sent.")
 		return nil
 	}
 
@@ -129,12 +129,12 @@ func (s *Service) Send(ctx context.Context, subject, message string, opts ...not
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if len(s.recipients) == 0 {
-		return notify.ErrNoRecipients
-	}
-
 	// Create new send config from service's default values and passed options
 	conf := s.newSendConfig(subject, message, opts...)
+
+	if len(conf.Recipients) == 0 {
+		return notify.ErrNoRecipients
+	}
 
 	if conf.Message == "" && len(conf.Attachments) == 0 {
 		s.logger.Warn().Msg("Message is empty and no attachments are present. Aborting send.")

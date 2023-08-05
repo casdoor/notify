@@ -2,11 +2,11 @@ package ntfy
 
 import "github.com/nikoksr/notify/v2"
 
-var _ notify.SendConfig = (*SendConfig)(nil)
+var _ notify.SendConfigurer = (*SendConfig)(nil)
 
 // SendConfig represents the configuration needed for sending a message.
 //
-// This struct complies with the notify.SendConfig interface and allows you to alter
+// This struct complies with the notify.SendConfigurer interface and allows you to alter
 // the behavior of the send function. This can be achieved by either passing send options
 // to the send function or by manipulating the fields of this struct in your custom
 // message renderer.
@@ -15,15 +15,13 @@ var _ notify.SendConfig = (*SendConfig)(nil)
 // However, users must be aware that they are responsible for managing thread-safety
 // and other similar concerns when manipulating these fields directly.
 type SendConfig struct {
-	Subject       string
-	Message       string
-	Attachments   []notify.Attachment
-	Metadata      map[string]any
-	DryRun        bool
-	ContinueOnErr bool
+	*notify.SendConfig
 
 	// Ntfy specific
 
+	APIBaseURL  string
+	APIKey      string
+	Recipients  []string
 	ParseMode   Mode
 	Priority    Priority
 	Tags        []string
@@ -31,50 +29,54 @@ type SendConfig struct {
 	ClickAction string
 }
 
-// SetAttachments adds attachments to the message. This method is needed as part of the notify.SendConfig interface.
-func (c *SendConfig) SetAttachments(attachments ...notify.Attachment) {
-	c.Attachments = attachments
-}
-
-// SetMetadata sets the metadata of the message. This method is needed as part of the notify.SendConfig interface.
-func (c *SendConfig) SetMetadata(metadata map[string]any) {
-	c.Metadata = metadata
-}
-
-// SetDryRun sets the dry run flag of the message. This method is needed as part of the notify.SendConfig interface.
-func (c *SendConfig) SetDryRun(dryRun bool) {
-	c.DryRun = dryRun
-}
-
-// SetContinueOnErr sets the continue on error flag of the message. This method is needed as part of the
-// notify.SendConfig interface.
-func (c *SendConfig) SetContinueOnErr(continueOnErr bool) {
-	c.ContinueOnErr = continueOnErr
-}
-
-// Send options
-
-// SendWithPriority is a send option that sets the priority of the message.
-func SendWithPriority(priority Priority) notify.SendOption {
-	return func(config notify.SendConfig) {
+// SendWithAPIBaseURL is a send option that sets the API base URL of the message.
+func SendWithAPIBaseURL(apiBaseURL string) notify.SendOption {
+	return func(config notify.SendConfigurer) {
 		if typedConf, ok := config.(*SendConfig); ok {
-			typedConf.Priority = priority
+			typedConf.APIBaseURL = apiBaseURL
+		}
+	}
+}
+
+// SendWithAPIKey is a send option that sets the API key of the message.
+func SendWithAPIKey(apiKey string) notify.SendOption {
+	return func(config notify.SendConfigurer) {
+		if typedConf, ok := config.(*SendConfig); ok {
+			typedConf.APIKey = apiKey
+		}
+	}
+}
+
+// SendWithRecipients is a send option that sets the recipients of the message.
+func SendWithRecipients(recipients ...string) notify.SendOption {
+	return func(config notify.SendConfigurer) {
+		if typedConf, ok := config.(*SendConfig); ok {
+			typedConf.Recipients = recipients
 		}
 	}
 }
 
 // SendWithParseMode is a send option that sets the parse mode of the message.
 func SendWithParseMode(parseMode Mode) notify.SendOption {
-	return func(config notify.SendConfig) {
+	return func(config notify.SendConfigurer) {
 		if typedConf, ok := config.(*SendConfig); ok {
 			typedConf.ParseMode = parseMode
 		}
 	}
 }
 
+// SendWithPriority is a send option that sets the priority of the message.
+func SendWithPriority(priority Priority) notify.SendOption {
+	return func(config notify.SendConfigurer) {
+		if typedConf, ok := config.(*SendConfig); ok {
+			typedConf.Priority = priority
+		}
+	}
+}
+
 // SendWithTags is a send option that sets the tags of the message.
 func SendWithTags(tags ...string) notify.SendOption {
-	return func(config notify.SendConfig) {
+	return func(config notify.SendConfigurer) {
 		if typedConf, ok := config.(*SendConfig); ok {
 			typedConf.Tags = tags
 		}
@@ -83,7 +85,7 @@ func SendWithTags(tags ...string) notify.SendOption {
 
 // SendWithDelay is a send option that sets the delay of the message.
 func SendWithDelay(delay string) notify.SendOption {
-	return func(config notify.SendConfig) {
+	return func(config notify.SendConfigurer) {
 		if typedConf, ok := config.(*SendConfig); ok {
 			typedConf.Delay = delay
 		}
@@ -92,7 +94,7 @@ func SendWithDelay(delay string) notify.SendOption {
 
 // SendWithClickAction is a send option that sets the click action of the message.
 func SendWithClickAction(clickAction string) notify.SendOption {
-	return func(config notify.SendConfig) {
+	return func(config notify.SendConfigurer) {
 		if typedConf, ok := config.(*SendConfig); ok {
 			typedConf.ClickAction = clickAction
 		}
@@ -102,15 +104,20 @@ func SendWithClickAction(clickAction string) notify.SendOption {
 // newSendConfig creates a new send config with default values.
 func (s *Service) newSendConfig(subject, message string, opts ...notify.SendOption) *SendConfig {
 	conf := &SendConfig{
-		Subject:       subject,
-		Message:       message,
-		DryRun:        s.dryRun,
-		ContinueOnErr: s.continueOnErr,
-		ParseMode:     s.parseMode,
-		Priority:      s.priority,
-		Tags:          s.tags,
-		Delay:         s.delay,
-		ClickAction:   s.clickAction,
+		SendConfig: &notify.SendConfig{
+			Subject:       subject,
+			Message:       message,
+			DryRun:        s.dryRun,
+			ContinueOnErr: s.continueOnErr,
+		},
+		APIBaseURL:  s.apiBaseURL,
+		APIKey:      s.apiKey,
+		Recipients:  s.recipients,
+		ParseMode:   s.parseMode,
+		Priority:    s.priority,
+		Tags:        s.tags,
+		Delay:       s.delay,
+		ClickAction: s.clickAction,
 	}
 
 	for _, opt := range opts {

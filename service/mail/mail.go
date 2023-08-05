@@ -30,7 +30,7 @@ type (
 		logger        onelog.Logger
 		renderMessage func(conf *SendConfig) string
 		dryRun        bool
-		continueOnErr bool // no-op for Mail
+		continueOnErr bool // no-op for mail
 
 		// Mail specific
 
