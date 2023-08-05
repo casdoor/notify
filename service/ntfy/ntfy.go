@@ -74,9 +74,9 @@ type Service struct {
 	continueOnErr bool
 
 	// Ntfy specific
+	apiBaseURL  string
 	token       string
 	topics      []string
-	apiBaseURL  string
 	parseMode   Mode
 	priority    Priority
 	tags        []string

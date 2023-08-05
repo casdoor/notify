@@ -4,6 +4,8 @@ import (
 	"crypto/tls"
 	"time"
 
+	"github.com/nikoksr/onelog"
+
 	mail "github.com/xhit/go-simple-mail/v2"
 )
 
@@ -34,51 +36,28 @@ func WithClient(client *mail.SMTPClient) Option {
 	}
 }
 
-// WithRecipients sets the default recipients for the notifications on the service.
-func WithRecipients(recipients ...string) Option {
-	return func(s *Service) {
-		s.mu.Lock()
-		defer s.mu.Unlock()
-		s.recipients = recipients
-		s.logger.Debug().Int("count", len(recipients)).Int("total", len(s.recipients)).Msg("Recipients set")
-	}
-}
-
-// WithCCRecipients sets the default CC recipients for the notifications on the service.
-func WithCCRecipients(recipients ...string) Option {
-	return func(s *Service) {
-		s.mu.Lock()
-		defer s.mu.Unlock()
-		s.ccRecipients = recipients
-		s.logger.Debug().Int("count", len(recipients)).Int("total", len(s.ccRecipients)).Msg("CC recipients set")
-	}
-}
-
-// WithBCCRecipients sets the default BCC recipients for the notifications on the service.
-func WithBCCRecipients(recipients ...string) Option {
-	return func(s *Service) {
-		s.mu.Lock()
-		defer s.mu.Unlock()
-		s.bccRecipients = recipients
-		s.logger.Debug().Int("count", len(recipients)).Int("total", len(s.bccRecipients)).Msg("BCC recipients set")
-	}
-}
-
-// WithName sets an alternative name for the service.
+// WithName sets the name of the service.
 func WithName(name string) Option {
 	return func(s *Service) {
-		s.mu.Lock()
-		defer s.mu.Unlock()
 		s.name = name
 		s.logger.Debug().Str("name", name).Msg("Service name set")
 	}
 }
 
-// WithMessageRenderer sets the function to render the message.
+// WithLogger sets the logger. The default logger is a no-op logger.
+func WithLogger(logger onelog.Logger) Option {
+	return func(s *Service) {
+		logger = logger.With("service", s.Name()) // Add service name to logger
+		s.logger = logger
+		s.logger.Debug().Msg("Logger set")
+	}
+}
+
+// WithMessageRenderer sets the message renderer. The default function will put the subject and message on separate lines.
 //
 // Example:
 //
-//	email.WithMessageRenderer(func(conf *SendConfig) string {
+//	WithMessageRenderer(func(conf *SendConfig) string {
 //		var builder strings.Builder
 //
 //		builder.WriteString(conf.subject)
@@ -89,14 +68,12 @@ func WithName(name string) Option {
 //	})
 func WithMessageRenderer(builder func(conf *SendConfig) string) Option {
 	return func(s *Service) {
-		s.mu.Lock()
-		defer s.mu.Unlock()
 		s.renderMessage = builder
 		s.logger.Debug().Msg("Message renderer set")
 	}
 }
 
-// WithDryRun sets the dry run flag. If set to true, messages will not be sent.
+// WithDryRun sets the dry run flag. If set to true, no messages will be sent.
 func WithDryRun(dryRun bool) Option {
 	return func(s *Service) {
 		s.dryRun = dryRun
@@ -104,12 +81,20 @@ func WithDryRun(dryRun bool) Option {
 	}
 }
 
-// WithContinueOnErr sets the continue on error flag. Compared to other services, this is a no-op, as the Mail service
-// will always send its messages to all recipients at once.
+// WithContinueOnErr sets the continue on error flag. If set to true, the service will continue sending the message to
+// the next recipient even if an error occurred.
 func WithContinueOnErr(continueOnErr bool) Option {
 	return func(s *Service) {
 		s.continueOnErr = continueOnErr
 		s.logger.Debug().Bool("continue-on-error", continueOnErr).Msg("Continue on error set")
+	}
+}
+
+// WithRecipients sets the email addresses that should receive messages. You can add more email addresses by calling AddRecipients.
+func WithRecipients(phoneNumbers ...string) Option {
+	return func(s *Service) {
+		s.recipients = phoneNumbers
+		s.logger.Debug().Int("count", len(phoneNumbers)).Int("total", len(s.recipients)).Msg("Recipients set")
 	}
 }
 

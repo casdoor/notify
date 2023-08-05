@@ -22,7 +22,7 @@ type SendConfig struct {
 	DryRun        bool
 	ContinueOnErr bool
 
-	// Ntfy specific fields
+	// Ntfy specific
 
 	ParseMode   Mode
 	Priority    Priority

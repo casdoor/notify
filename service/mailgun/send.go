@@ -10,7 +10,7 @@ import (
 	"github.com/nikoksr/notify/v2"
 )
 
-func (s *Service) newMessage(conf *SendConfig) (*mailgun.Message, error) {
+func (s *Service) buildEmailPayload(conf *SendConfig) (*mailgun.Message, error) {
 	email := s.client.NewMessage(
 		conf.SenderAddress,
 		conf.Subject,
@@ -96,10 +96,10 @@ func (s *Service) send(ctx context.Context, conf *SendConfig) error {
 		return ctx.Err()
 	}
 
-	// Create a new email message.
-	email, err := s.newMessage(conf)
+	// Build the email payload
+	email, err := s.buildEmailPayload(conf)
 	if err != nil {
-		return fmt.Errorf("new message: %w", err)
+		return fmt.Errorf("build email payload: %w", err)
 	}
 
 	// Quit early if dry run is enabled

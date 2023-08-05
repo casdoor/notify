@@ -41,11 +41,12 @@ type Service struct {
 	continueOnErr bool
 
 	// Sendgrid specific
+
+	senderAddress    string
+	senderName       string
 	recipients       []string
 	ccRecipients     []string
 	bccRecipients    []string
-	senderAddress    string
-	senderName       string
 	parseMode        Mode
 	headers          map[string]string
 	customArgs       map[string]string

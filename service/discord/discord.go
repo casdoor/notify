@@ -75,6 +75,7 @@ type Service struct {
 	continueOnErr bool
 
 	// Discord specific
+
 	recipients []string
 }
 

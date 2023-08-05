@@ -22,11 +22,11 @@ type SendConfig struct {
 	DryRun        bool
 	ContinueOnErr bool
 
-	// Mail specific fields
+	// Mail specific
 
+	SenderName string
 	ParseMode  Mode
 	Priority   Priority
-	SenderName string
 }
 
 // SetAttachments adds attachments to the message. This method is needed as part of the notify.SendConfig interface.
@@ -53,6 +53,16 @@ func (c *SendConfig) SetContinueOnErr(continueOnErr bool) {
 
 // Send options
 
+// SendWithSenderName is a send option that sets the sender name of the message. This will be displayed in the
+// recipient's email client. E.g. "From Example <john.doe@example>", where "From Example" is the sender name.
+func SendWithSenderName(senderName string) notify.SendOption {
+	return func(config notify.SendConfig) {
+		if typedConf, ok := config.(*SendConfig); ok {
+			typedConf.SenderName = senderName
+		}
+	}
+}
+
 // SendWithParseMode is a send option that sets the parse mode of the message.
 func SendWithParseMode(parseMode Mode) notify.SendOption {
 	return func(config notify.SendConfig) {
@@ -71,17 +81,6 @@ func SendWithPriority(priority Priority) notify.SendOption {
 	}
 }
 
-// SendWithSenderName is a send option that sets the sender name of the message. This will be displayed in the
-// recipient's email client. E.g. "From Example <john.doe@example>", where "From Example" is the sender name. The default
-// is "From Notify <no-reply>".
-func SendWithSenderName(senderName string) notify.SendOption {
-	return func(config notify.SendConfig) {
-		if typedConf, ok := config.(*SendConfig); ok {
-			typedConf.SenderName = senderName
-		}
-	}
-}
-
 // newSendConfig creates a new send config with default values.
 func (s *Service) newSendConfig(subject, message string, opts ...notify.SendOption) *SendConfig {
 	conf := &SendConfig{
@@ -89,6 +88,9 @@ func (s *Service) newSendConfig(subject, message string, opts ...notify.SendOpti
 		Message:       message,
 		DryRun:        s.dryRun,
 		ContinueOnErr: s.continueOnErr,
+		SenderName:    s.senderName,
+		ParseMode:     s.parseMode,
+		Priority:      s.priority,
 	}
 
 	for _, opt := range opts {

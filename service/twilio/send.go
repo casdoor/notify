@@ -8,14 +8,21 @@ import (
 	"github.com/nikoksr/notify/v2"
 )
 
-// sendToPhoneNumber sends a message to a chat. It returns an error if the message could not be sent.
-func (s *Service) sendToPhoneNumber(phoneNumber string, conf *SendConfig) error {
-	s.logger.Debug().Str("recipient", phoneNumber).Msg("Sending text message to chat")
-
+func (s *Service) buildMessagePayload(phoneNumber string, conf *SendConfig) *twilioApi.CreateMessageParams {
 	params := &twilioApi.CreateMessageParams{}
 	params.SetFrom(s.senderPhoneNumber)
 	params.SetTo(phoneNumber)
 	params.SetBody(conf.Message)
+
+	return params
+}
+
+// sendToPhoneNumber sends a message to a chat. It returns an error if the message could not be sent.
+func (s *Service) sendToPhoneNumber(phoneNumber string, conf *SendConfig) error {
+	s.logger.Debug().Str("recipient", phoneNumber).Msg("Sending text message to chat")
+
+	// Build message payload
+	message := s.buildMessagePayload(phoneNumber, conf)
 
 	// Quit early if dry run is enabled
 	if conf.DryRun {
@@ -24,7 +31,7 @@ func (s *Service) sendToPhoneNumber(phoneNumber string, conf *SendConfig) error 
 	}
 
 	// Send the message
-	if _, err := s.client.Api.CreateMessage(params); err != nil {
+	if _, err := s.client.Api.CreateMessage(message); err != nil {
 		return err
 	}
 

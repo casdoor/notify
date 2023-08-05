@@ -22,7 +22,7 @@ type SendConfig struct {
 	DryRun        bool
 	ContinueOnErr bool
 
-	// Telegram specific fields
+	// Telegram specific
 
 	ParseMode string
 }

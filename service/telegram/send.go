@@ -2,6 +2,7 @@ package telegram
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	telegram "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -9,21 +10,19 @@ import (
 	"github.com/nikoksr/notify/v2"
 )
 
-// sendToChat sends a message to a chat. It returns an error if the message could not be sent.
-func (s *Service) sendToChat(chatID int64, conf *SendConfig) error {
-	if len(conf.Attachments) == 0 {
-		return s.sendTextMessage(chatID, conf)
-	}
+func (s *Service) buildMessagePayload(chatID int64, conf *SendConfig) telegram.Chattable {
+	message := telegram.NewMessage(chatID, conf.Message)
+	message.ParseMode = conf.ParseMode
 
-	return s.sendFileAttachments(chatID, conf)
+	return message
 }
 
 // sendTextMessage sends a text message
 func (s *Service) sendTextMessage(chatID int64, conf *SendConfig) error {
 	s.logger.Debug().Int64("recipient", chatID).Msg("Sending text message to chat")
 
-	message := telegram.NewMessage(chatID, conf.Message)
-	message.ParseMode = conf.ParseMode
+	// Build the message
+	message := s.buildMessagePayload(chatID, conf)
 
 	// Quit early if dry run is enabled
 	if conf.DryRun {
@@ -41,6 +40,46 @@ func (s *Service) sendTextMessage(chatID int64, conf *SendConfig) error {
 	return nil
 }
 
+func (s *Service) buildFilePayload(chatID int64, conf *SendConfig, isFirst bool, attachment notify.Attachment) (telegram.Chattable, error) {
+	document := telegram.NewDocument(chatID, telegram.FileReader{
+		Reader: attachment.Reader(),
+		Name:   attachment.Name(),
+	})
+
+	// Set caption only for the first file
+	if isFirst {
+		document.Caption = conf.Message
+		document.ParseMode = conf.ParseMode
+	}
+
+	return document, nil
+}
+
+// sendFile sends an individual file
+func (s *Service) sendFile(chatID int64, conf *SendConfig, isFirst bool, attachment notify.Attachment) error {
+	s.logger.Debug().Int64("recipient", chatID).Str("file", attachment.Name()).Msg("Sending file to chat")
+
+	// Build the payload
+	file, err := s.buildFilePayload(chatID, conf, isFirst, attachment)
+	if err != nil {
+		return fmt.Errorf("build file payload: %w", err)
+	}
+
+	// Quit early if dry run is enabled
+	if conf.DryRun {
+		s.logger.Info().Str("recipient", strconv.FormatInt(chatID, 10)).Msg("Dry run enabled - Message not sent.")
+	}
+
+	// Send the file
+	if _, err := s.client.Send(file); err != nil {
+		return err
+	}
+
+	s.logger.Info().Int64("recipient", chatID).Str("file", attachment.Name()).Msg("File sent to chat")
+
+	return nil
+}
+
 // sendFileAttachments sends file attachments
 func (s *Service) sendFileAttachments(chatID int64, conf *SendConfig) error {
 	for idx, attachment := range conf.Attachments {
@@ -53,34 +92,13 @@ func (s *Service) sendFileAttachments(chatID int64, conf *SendConfig) error {
 	return nil
 }
 
-// sendFile sends an individual file
-func (s *Service) sendFile(chatID int64, conf *SendConfig, isFirst bool, attachment notify.Attachment) error {
-	s.logger.Debug().Int64("recipient", chatID).Str("file", attachment.Name()).Msg("Sending file to chat")
-
-	document := telegram.NewDocument(chatID, telegram.FileReader{
-		Reader: attachment.Reader(),
-		Name:   attachment.Name(),
-	})
-
-	// Set caption only for the first file
-	if isFirst {
-		document.Caption = conf.Message
-		document.ParseMode = conf.ParseMode
+// sendToChat sends a message to a chat. It returns an error if the message could not be sent.
+func (s *Service) sendToChat(chatID int64, conf *SendConfig) error {
+	if len(conf.Attachments) == 0 {
+		return s.sendTextMessage(chatID, conf)
 	}
 
-	// Quit early if dry run is enabled
-	if conf.DryRun {
-		s.logger.Info().Str("recipient", strconv.FormatInt(chatID, 10)).Msg("Dry run enabled - Message not sent.")
-	}
-
-	// Send the file
-	if _, err := s.client.Send(document); err != nil {
-		return err
-	}
-
-	s.logger.Info().Int64("recipient", chatID).Str("file", attachment.Name()).Msg("File sent to chat")
-
-	return nil
+	return s.sendFileAttachments(chatID, conf)
 }
 
 // The function 'send' is responsible for the process of sending a message to every recipient in the list.

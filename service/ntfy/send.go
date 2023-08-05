@@ -4,13 +4,27 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/nikoksr/notify/v2"
 )
 
-func sendRequest(client *http.Client, req *http.Request) error {
-	resp, err := client.Do(req)
+func (s *Service) buildMessagePayload(topic string, conf *SendConfig) *sendMessageRequest {
+	return &sendMessageRequest{
+		Topic:       topic,
+		Title:       conf.Subject,
+		Message:     conf.Message,
+		Tags:        conf.Tags,
+		Priority:    conf.Priority,
+		ClickAction: conf.ClickAction,
+		Markdown:    conf.ParseMode == ModeMarkdown,
+		Delay:       conf.Delay,
+	}
+}
+
+func (s *Service) sendRequest(req *http.Request) error {
+	resp, err := s.client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -23,32 +37,34 @@ func sendRequest(client *http.Client, req *http.Request) error {
 	return nil
 }
 
-func (s *Service) sendTextMessage(ctx context.Context, topic string, conf *SendConfig) error {
-	s.logger.Debug().Str("recipient", topic).Msg("Sending text message to topic")
-
-	payload := &sendMessageRequest{
-		Topic:       topic,
-		Title:       conf.Subject,
-		Message:     conf.Message,
-		Tags:        conf.Tags,
-		Priority:    conf.Priority,
-		ClickAction: conf.ClickAction,
-		Markdown:    conf.ParseMode == ModeMarkdown,
-		Delay:       conf.Delay,
-	}
-
+func (s *Service) newSendMessageRequest(ctx context.Context, payload *sendMessageRequest) (*http.Request, error) {
 	payloadJSON, err := json.Marshal(payload)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("marshal payload: %w", err)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, s.apiBaseURL, bytes.NewReader(payloadJSON))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+s.token)
+
+	return req, nil
+}
+
+func (s *Service) sendTextMessage(ctx context.Context, topic string, conf *SendConfig) error {
+	s.logger.Debug().Str("recipient", topic).Msg("Sending text message to topic")
+
+	// Build message payload
+	payload := s.buildMessagePayload(topic, conf)
+
+	// Create request
+	req, err := s.newSendMessageRequest(ctx, payload)
+	if err != nil {
+		return fmt.Errorf("create request: %w", err)
+	}
 
 	// Quit early if dry run is enabled
 	if conf.DryRun {
@@ -57,8 +73,8 @@ func (s *Service) sendTextMessage(ctx context.Context, topic string, conf *SendC
 	}
 
 	// Send the message
-	if err := sendRequest(s.client, req); err != nil {
-		return err
+	if err := s.sendRequest(req); err != nil {
+		return fmt.Errorf("send request: %w", err)
 	}
 
 	s.logger.Info().Str("recipient", topic).Msg("Text message sent to topic")
@@ -66,18 +82,28 @@ func (s *Service) sendTextMessage(ctx context.Context, topic string, conf *SendC
 	return nil
 }
 
-func (s *Service) sendFile(ctx context.Context, topic string, conf *SendConfig, attachment notify.Attachment) error {
-	s.logger.Debug().Str("recipient", topic).Str("file", attachment.Name()).Msg("Sending file to topic")
-
+func (s *Service) newSendFileRequest(ctx context.Context, topic string, attachment notify.Attachment) (*http.Request, error) {
 	// Append topic to base URL, e.g. https://ntfy.sh/my_topic
 	endpoint := s.apiBaseURL + topic
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPut, endpoint, attachment.Reader())
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	req.Header.Set("Authorization", "Bearer "+s.token)
+
+	return req, nil
+}
+
+func (s *Service) sendFile(ctx context.Context, topic string, conf *SendConfig, attachment notify.Attachment) error {
+	s.logger.Debug().Str("recipient", topic).Str("file", attachment.Name()).Msg("Sending file to topic")
+
+	// Create request
+	req, err := s.newSendFileRequest(ctx, topic, attachment)
+	if err != nil {
+		return fmt.Errorf("create request: %w", err)
+	}
 
 	// Quit early if dry run is enabled
 	if conf.DryRun {
@@ -86,7 +112,7 @@ func (s *Service) sendFile(ctx context.Context, topic string, conf *SendConfig, 
 	}
 
 	// Send the file
-	if err := sendRequest(s.client, req); err != nil {
+	if err := s.sendRequest(req); err != nil {
 		return err
 	}
 

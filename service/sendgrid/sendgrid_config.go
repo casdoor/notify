@@ -17,7 +17,7 @@ func WithClient(client *sendgrid.Client) Option {
 	}
 }
 
-// WithName sets the name of the service. The default name is "sendgrid".
+// WithName sets the name of the service.
 func WithName(name string) Option {
 	return func(s *Service) {
 		s.name = name
@@ -38,7 +38,7 @@ func WithLogger(logger onelog.Logger) Option {
 //
 // Example:
 //
-//	sendgrid.WithMessageRenderer(func(conf *SendConfig) string {
+//	WithMessageRenderer(func(conf *SendConfig) string {
 //		var builder strings.Builder
 //
 //		builder.WriteString(conf.subject)
@@ -71,7 +71,23 @@ func WithContinueOnErr(continueOnErr bool) Option {
 	}
 }
 
-// WithRecipients sets the email addresses that should receive messages. You can add more email addresses by calling AddRecipients.
+// WithSenderAddress sets the sender address.
+func WithSenderAddress(address string) Option {
+	return func(s *Service) {
+		s.senderAddress = address
+		s.logger.Debug().Str("sender-address", address).Msg("Sender address set")
+	}
+}
+
+// WithSenderName sets the sender name.
+func WithSenderName(name string) Option {
+	return func(s *Service) {
+		s.senderName = name
+		s.logger.Debug().Str("sender-name", name).Msg("Sender name set")
+	}
+}
+
+// WithRecipients sets the recipients that should receive messages. You can add more recipients by calling AddRecipients.
 func WithRecipients(phoneNumbers ...string) Option {
 	return func(s *Service) {
 		s.recipients = phoneNumbers
@@ -94,22 +110,6 @@ func WithBCCRecipients(phoneNumbers ...string) Option {
 	return func(s *Service) {
 		s.bccRecipients = phoneNumbers
 		s.logger.Debug().Int("count", len(phoneNumbers)).Int("total", len(s.bccRecipients)).Msg("BCC recipients set")
-	}
-}
-
-// WithSenderAddress sets the sender address.
-func WithSenderAddress(address string) Option {
-	return func(s *Service) {
-		s.senderAddress = address
-		s.logger.Debug().Str("sender-address", address).Msg("Sender address set")
-	}
-}
-
-// WithSenderName sets the sender name.
-func WithSenderName(name string) Option {
-	return func(s *Service) {
-		s.senderName = name
-		s.logger.Debug().Str("sender-name", name).Msg("Sender name set")
 	}
 }
 

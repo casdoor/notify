@@ -16,6 +16,14 @@ func WithClient(client *telegram.BotAPI) Option {
 	}
 }
 
+// WithName sets the name of the service.
+func WithName(name string) Option {
+	return func(s *Service) {
+		s.name = name
+		s.logger.Debug().Str("name", name).Msg("Service name set")
+	}
+}
+
 // WithLogger sets the logger. The default logger is a no-op logger.
 func WithLogger(logger onelog.Logger) Option {
 	return func(s *Service) {
@@ -25,27 +33,11 @@ func WithLogger(logger onelog.Logger) Option {
 	}
 }
 
-// WithRecipients sets the chat IDs that should receive messages. You can add more chat IDs by calling AddRecipients.
-func WithRecipients(chatIDs ...int64) Option {
-	return func(s *Service) {
-		s.chatIDs = chatIDs
-		s.logger.Debug().Int("count", len(chatIDs)).Int("total", len(s.chatIDs)).Msg("Recipients set")
-	}
-}
-
-// WithName sets the name of the service. The default name is "telegram".
-func WithName(name string) Option {
-	return func(s *Service) {
-		s.name = name
-		s.logger.Debug().Str("name", name).Msg("Service name set")
-	}
-}
-
 // WithMessageRenderer sets the message renderer. The default function will put the subject and message on separate lines.
 //
 // Example:
 //
-//	telegram.WithMessageRenderer(func(conf *SendConfig) string {
+//	WithMessageRenderer(func(conf *SendConfig) string {
 //		var builder strings.Builder
 //
 //		builder.WriteString(conf.subject)
@@ -61,7 +53,7 @@ func WithMessageRenderer(builder func(conf *SendConfig) string) Option {
 	}
 }
 
-// WithDryRun sets the dry run flag. If set to true, messages will not be sent.
+// WithDryRun sets the dry run flag. If set to true, no messages will be sent.
 func WithDryRun(dryRun bool) Option {
 	return func(s *Service) {
 		s.dryRun = dryRun
@@ -75,6 +67,14 @@ func WithContinueOnErr(continueOnErr bool) Option {
 	return func(s *Service) {
 		s.continueOnErr = continueOnErr
 		s.logger.Debug().Bool("continue-on-error", continueOnErr).Msg("Continue on error set")
+	}
+}
+
+// WithRecipients sets the recipients that should receive messages. You can add more recipients by calling AddRecipients.
+func WithRecipients(chatIDs ...int64) Option {
+	return func(s *Service) {
+		s.chatIDs = chatIDs
+		s.logger.Debug().Int("count", len(chatIDs)).Int("total", len(s.chatIDs)).Msg("Recipients set")
 	}
 }
 

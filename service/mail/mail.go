@@ -33,12 +33,13 @@ type (
 		continueOnErr bool // no-op for Mail
 
 		// Mail specific
+
+		senderName    string
 		recipients    []string
 		ccRecipients  []string
 		bccRecipients []string
 		parseMode     Mode
 		priority      Priority
-		senderName    string
 	}
 )
 
@@ -101,9 +102,9 @@ func New(host string, port int, username, password string, opts ...Option) (*Ser
 		name:          "mail",
 		logger:        nopadapter.NewAdapter(),
 		renderMessage: defaultMessageRenderer,
+		senderName:    "From Notify <no-reply>",
 		parseMode:     ModeHTML,
 		priority:      PriorityNormal,
-		senderName:    "From Notify <no-reply>",
 	}
 
 	s.applyOptions(opts...)

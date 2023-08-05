@@ -16,7 +16,7 @@ func WithClient(client mailgun.Mailgun) Option {
 	}
 }
 
-// WithName sets the name of the service. The default name is "telegram".
+// WithName sets the name of the service.
 func WithName(name string) Option {
 	return func(s *Service) {
 		s.name = name
@@ -37,7 +37,7 @@ func WithLogger(logger onelog.Logger) Option {
 //
 // Example:
 //
-//	telegram.WithMessageRenderer(func(conf *SendConfig) string {
+//	WithMessageRenderer(func(conf *SendConfig) string {
 //		var builder strings.Builder
 //
 //		builder.WriteString(conf.subject)
@@ -53,7 +53,7 @@ func WithMessageRenderer(builder func(conf *SendConfig) string) Option {
 	}
 }
 
-// WithDryRun sets the dry run flag. If set to true, messages will not be sent.
+// WithDryRun sets the dry run flag. If set to true, no messages will be sent.
 func WithDryRun(dryRun bool) Option {
 	return func(s *Service) {
 		s.dryRun = dryRun
@@ -78,11 +78,11 @@ func WithSenderAddress(senderAddress string) Option {
 	}
 }
 
-// WithRecipients sets the chat IDs that should receive messages. You can add more chat IDs by calling AddRecipients.
-func WithRecipients(recipients ...string) Option {
+// WithRecipients sets the email addresses that should receive messages. You can add more email addresses by calling AddRecipients.
+func WithRecipients(phoneNumbers ...string) Option {
 	return func(s *Service) {
-		s.recipients = recipients
-		s.logger.Debug().Int("count", len(recipients)).Int("total", len(s.recipients)).Msg("Recipients set")
+		s.recipients = phoneNumbers
+		s.logger.Debug().Int("count", len(phoneNumbers)).Int("total", len(s.recipients)).Msg("Recipients set")
 	}
 }
 

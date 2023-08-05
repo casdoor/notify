@@ -22,7 +22,7 @@ type SendConfig struct {
 	DryRun        bool
 	ContinueOnErr bool
 
-	// Slack specific fields
+	// Slack specific
 
 	EscapeMessage bool
 }

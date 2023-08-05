@@ -22,7 +22,7 @@ type SendConfig struct {
 	DryRun        bool
 	ContinueOnErr bool
 
-	// Mailgun specific fields
+	// Mailgun specific
 
 	SenderAddress        string
 	ParseMode            Mode

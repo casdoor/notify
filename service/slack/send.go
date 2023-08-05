@@ -8,9 +8,32 @@ import (
 	"github.com/nikoksr/notify/v2"
 )
 
+func (s *Service) sendTextMessage(ctx context.Context, channelID string, conf *SendConfig) error {
+	s.logger.Debug().Str("recipient", channelID).Msg("Sending text message to channel")
+
+	// Build the message
+	message := slack.MsgOptionText(conf.Message, conf.EscapeMessage)
+
+	// Quit early if dry run is enabled
+	if conf.DryRun {
+		s.logger.Info().Str("recipient", channelID).Msg("Dry run enabled - Message not sent.")
+		return nil
+	}
+
+	// Send the message
+	if _, _, err := s.client.PostMessageContext(ctx, channelID, message); err != nil {
+		return err
+	}
+
+	s.logger.Info().Str("recipient", channelID).Msg("Text message sent to channel")
+
+	return nil
+}
+
 func (s *Service) sendFile(ctx context.Context, channelID string, conf *SendConfig, isFirst bool, attachment notify.Attachment) error {
 	s.logger.Debug().Str("recipient", channelID).Str("file", attachment.Name()).Msg("Sending file to channel")
 
+	// Build the file params
 	params := slack.UploadFileV2Parameters{
 		Reader:   attachment.Reader(),
 		Filename: attachment.Name(),
@@ -46,25 +69,6 @@ func (s *Service) sendFileAttachments(ctx context.Context, channelID string, con
 			return err
 		}
 	}
-
-	return nil
-}
-
-func (s *Service) sendTextMessage(ctx context.Context, channelID string, conf *SendConfig) error {
-	s.logger.Debug().Str("recipient", channelID).Msg("Sending text message to channel")
-
-	// Quit early if dry run is enabled
-	if conf.DryRun {
-		s.logger.Info().Str("recipient", channelID).Msg("Dry run enabled - Message not sent.")
-		return nil
-	}
-
-	// Send the message
-	if _, _, err := s.client.PostMessageContext(ctx, channelID, slack.MsgOptionText(conf.Message, conf.EscapeMessage)); err != nil {
-		return err
-	}
-
-	s.logger.Info().Str("recipient", channelID).Msg("Text message sent to channel")
 
 	return nil
 }

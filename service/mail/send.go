@@ -4,27 +4,14 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"fmt"
 
 	mail "github.com/xhit/go-simple-mail/v2"
 
 	"github.com/nikoksr/notify/v2"
 )
 
-// The function 'send' is responsible for the process of sending a message to every recipient in the list.
-//
-// It checks if context was cancelled. If yes, it immediately returns the error from context. If not, it tries to send
-// the message to the recipients.
-//
-// Compared to other implementations of the send function, this one does not have an error handling routine. This is
-// because the mail package supports sending to multiple recipients at once. We're not looping over the recipients
-// ourselves, but instead let the mail package do it for us. If an error occurs, it will be returned immediately.
-func (s *Service) send(ctx context.Context, conf *SendConfig) error {
-	s.logger.Debug().Msg("Sending message to all recipients")
-
-	if ctx.Err() != nil {
-		return ctx.Err()
-	}
-
+func (s *Service) buildEmailPayload(conf *SendConfig) (*mail.Email, error) {
 	// Create a new email message.
 	email := mail.NewMSG().
 		SetFrom(s.senderName).
@@ -43,7 +30,7 @@ func (s *Service) send(ctx context.Context, conf *SendConfig) error {
 
 		buf := new(bytes.Buffer)
 		if _, err := buf.ReadFrom(attachment.Reader()); err != nil {
-			return err
+			return nil, fmt.Errorf("read attachment: %w", err)
 		}
 
 		content := base64.StdEncoding.EncodeToString(buf.Bytes())
@@ -56,6 +43,30 @@ func (s *Service) send(ctx context.Context, conf *SendConfig) error {
 		})
 
 		s.logger.Info().Str("attachment", attachment.Name()).Msg("Attachment added")
+	}
+
+	return email, nil
+}
+
+// The function 'send' is responsible for the process of sending a message to every recipient in the list.
+//
+// It checks if context was cancelled. If yes, it immediately returns the error from context. If not, it tries to send
+// the message to the recipients.
+//
+// Compared to other implementations of the send function, this one does not have an error handling routine. This is
+// because the mail package supports sending to multiple recipients at once. We're not looping over the recipients
+// ourselves, but instead let the mail package do it for us. If an error occurs, it will be returned immediately.
+func (s *Service) send(ctx context.Context, conf *SendConfig) error {
+	s.logger.Debug().Msg("Sending message to all recipients")
+
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+
+	// Build email payload
+	email, err := s.buildEmailPayload(conf)
+	if err != nil {
+		return fmt.Errorf("build email payload: %w", err)
 	}
 
 	// Quit early if dry run is enabled

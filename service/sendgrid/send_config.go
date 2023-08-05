@@ -26,7 +26,7 @@ type SendConfig struct {
 	DryRun        bool
 	ContinueOnErr bool
 
-	// Sendgrid specific fields
+	// Sendgrid specific
 
 	SenderAddress    string
 	SenderName       string

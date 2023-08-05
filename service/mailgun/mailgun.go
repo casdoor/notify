@@ -48,6 +48,7 @@ type Service struct {
 	continueOnErr bool
 
 	// Mailgun specific
+
 	senderAddress        string
 	recipients           []string
 	ccRecipients         []string

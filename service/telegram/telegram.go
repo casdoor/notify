@@ -42,6 +42,7 @@ type Service struct {
 	continueOnErr bool
 
 	// Telegram specific
+
 	chatIDs   []int64
 	parseMode string
 }

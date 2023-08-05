@@ -37,6 +37,7 @@ type Service struct {
 	continueOnErr bool
 
 	// Slack specific
+
 	channelIDs    []string
 	escapeMessage bool
 }

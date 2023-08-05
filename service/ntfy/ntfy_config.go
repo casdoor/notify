@@ -17,6 +17,14 @@ func WithClient(client *http.Client) Option {
 	}
 }
 
+// WithName sets the name of the service.
+func WithName(name string) Option {
+	return func(s *Service) {
+		s.name = name
+		s.logger.Debug().Str("name", name).Msg("Service name set")
+	}
+}
+
 // WithLogger sets the logger. The default logger is a no-op logger.
 func WithLogger(logger onelog.Logger) Option {
 	return func(s *Service) {
@@ -26,27 +34,11 @@ func WithLogger(logger onelog.Logger) Option {
 	}
 }
 
-// WithRecipients sets the topics that should receive messages. You can add more topics by calling AddRecipients.
-func WithRecipients(topics ...string) Option {
-	return func(s *Service) {
-		s.topics = topics
-		s.logger.Debug().Int("count", len(topics)).Int("total", len(s.topics)).Msg("Recipients set")
-	}
-}
-
-// WithName sets the name of the service. The default name is "ntfy".
-func WithName(name string) Option {
-	return func(s *Service) {
-		s.name = name
-		s.logger.Debug().Str("name", name).Msg("Service name set")
-	}
-}
-
 // WithMessageRenderer sets the message renderer. The default function will put the subject and message on separate lines.
 //
 // Example:
 //
-//	ntfy.WithMessageRenderer(func(conf *SendConfig) string {
+//	WithMessageRenderer(func(conf *SendConfig) string {
 //		var builder strings.Builder
 //
 //		builder.WriteString(conf.subject)
@@ -62,7 +54,7 @@ func WithMessageRenderer(builder func(conf *SendConfig) string) Option {
 	}
 }
 
-// WithDryRun sets the dry run flag. If set to true, messages will not be sent.
+// WithDryRun sets the dry run flag. If set to true, no messages will be sent.
 func WithDryRun(dryRun bool) Option {
 	return func(s *Service) {
 		s.dryRun = dryRun
@@ -84,6 +76,14 @@ func WithAPIBaseURL(url string) Option {
 	return func(s *Service) {
 		s.apiBaseURL = url
 		s.logger.Debug().Str("url", url).Msg("API base URL set")
+	}
+}
+
+// WithRecipients sets the recipients that should receive messages. You can add more recipients by calling AddRecipients.
+func WithRecipients(topics ...string) Option {
+	return func(s *Service) {
+		s.topics = topics
+		s.logger.Debug().Int("count", len(topics)).Int("total", len(s.topics)).Msg("Recipients set")
 	}
 }
 

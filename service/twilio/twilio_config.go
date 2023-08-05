@@ -16,6 +16,14 @@ func WithClient(client *twilio.RestClient) Option {
 	}
 }
 
+// WithName sets the name of the service.
+func WithName(name string) Option {
+	return func(s *Service) {
+		s.name = name
+		s.logger.Debug().Str("name", name).Msg("Service name set")
+	}
+}
+
 // WithLogger sets the logger. The default logger is a no-op logger.
 func WithLogger(logger onelog.Logger) Option {
 	return func(s *Service) {
@@ -25,27 +33,11 @@ func WithLogger(logger onelog.Logger) Option {
 	}
 }
 
-// WithRecipients sets the phonenumbers that should receive messages. You can add more phonenumbers by calling AddRecipients.
-func WithRecipients(phoneNumbers ...string) Option {
-	return func(s *Service) {
-		s.phoneNumbers = phoneNumbers
-		s.logger.Debug().Int("count", len(phoneNumbers)).Int("total", len(s.phoneNumbers)).Msg("Recipients set")
-	}
-}
-
-// WithName sets the name of the service. The default name is "twilio".
-func WithName(name string) Option {
-	return func(s *Service) {
-		s.name = name
-		s.logger.Debug().Str("name", name).Msg("Service name set")
-	}
-}
-
 // WithMessageRenderer sets the message renderer. The default function will put the subject and message on separate lines.
 //
 // Example:
 //
-//	twilio.WithMessageRenderer(func(conf *SendConfig) string {
+//	WithMessageRenderer(func(conf *SendConfig) string {
 //		var builder strings.Builder
 //
 //		builder.WriteString(conf.subject)
@@ -75,6 +67,14 @@ func WithContinueOnErr(continueOnErr bool) Option {
 	return func(s *Service) {
 		s.continueOnErr = continueOnErr
 		s.logger.Debug().Bool("continue-on-error", continueOnErr).Msg("Continue on error set")
+	}
+}
+
+// WithRecipients sets the recipients that should receive messages. You can add more recipients by calling AddRecipients.
+func WithRecipients(phoneNumbers ...string) Option {
+	return func(s *Service) {
+		s.phoneNumbers = phoneNumbers
+		s.logger.Debug().Int("count", len(phoneNumbers)).Int("total", len(s.phoneNumbers)).Msg("Recipients set")
 	}
 }
 

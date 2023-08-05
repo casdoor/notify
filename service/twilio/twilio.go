@@ -35,6 +35,7 @@ type Service struct {
 	continueOnErr bool
 
 	// Twilio specific
+
 	senderPhoneNumber string
 	phoneNumbers      []string
 }

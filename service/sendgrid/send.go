@@ -11,7 +11,7 @@ import (
 	"github.com/nikoksr/notify/v2"
 )
 
-func (s *Service) newMessage(conf *SendConfig) (*mail.SGMailV3, error) {
+func (s *Service) buildEmailPayload(conf *SendConfig) (*mail.SGMailV3, error) {
 	from := mail.NewEmail(conf.SenderName, conf.SenderAddress)
 	content := mail.NewContent(string(conf.ParseMode), conf.Message)
 
@@ -102,7 +102,7 @@ func (s *Service) send(ctx context.Context, conf *SendConfig) error {
 	}
 
 	// Create a new email message.
-	email, err := s.newMessage(conf)
+	email, err := s.buildEmailPayload(conf)
 	if err != nil {
 		return fmt.Errorf("new message: %w", err)
 	}

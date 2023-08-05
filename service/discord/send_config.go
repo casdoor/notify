@@ -22,7 +22,7 @@ type SendConfig struct {
 	DryRun        bool
 	ContinueOnErr bool
 
-	// Discord specific fields
+	// Discord specific
 }
 
 // SetAttachments adds attachments to the message. This method is needed as part of the notify.SendConfig interface.

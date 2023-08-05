@@ -1,6 +1,9 @@
 package slack
 
-import "github.com/slack-go/slack"
+import (
+	"github.com/nikoksr/onelog"
+	"github.com/slack-go/slack"
+)
 
 // Option represents a function type used to configure the Slack service.
 type Option = func(*Service)
@@ -15,15 +18,7 @@ func WithClient(client *slack.Client) Option {
 	}
 }
 
-// WithRecipients sets the default recipients for the notifications on the service.
-func WithRecipients(channelIDs ...string) Option {
-	return func(s *Service) {
-		s.channelIDs = channelIDs
-		s.logger.Debug().Int("count", len(channelIDs)).Int("total", len(s.channelIDs)).Msg("Recipients set")
-	}
-}
-
-// WithName sets an alternative name for the service.
+// WithName sets the name of the service.
 func WithName(name string) Option {
 	return func(s *Service) {
 		s.name = name
@@ -31,11 +26,20 @@ func WithName(name string) Option {
 	}
 }
 
-// WithMessageRenderer sets the function to render the message.
+// WithLogger sets the logger. The default logger is a no-op logger.
+func WithLogger(logger onelog.Logger) Option {
+	return func(s *Service) {
+		logger = logger.With("service", s.Name()) // Add service name to logger
+		s.logger = logger
+		s.logger.Debug().Msg("Logger set")
+	}
+}
+
+// WithMessageRenderer sets the message renderer. The default function will put the subject and message on separate lines.
 //
 // Example:
 //
-//	slack.WithMessageRenderer(func(conf *SendConfig) string {
+//	WithMessageRenderer(func(conf *SendConfig) string {
 //		var builder strings.Builder
 //
 //		builder.WriteString(conf.subject)
@@ -51,7 +55,7 @@ func WithMessageRenderer(builder func(conf *SendConfig) string) Option {
 	}
 }
 
-// WithDryRun sets the dry run flag. If set to true, messages will not be sent.
+// WithDryRun sets the dry run flag. If set to true, no messages will be sent.
 func WithDryRun(dryRun bool) Option {
 	return func(s *Service) {
 		s.dryRun = dryRun
@@ -68,10 +72,18 @@ func WithContinueOnErr(continueOnErr bool) Option {
 	}
 }
 
+// WithRecipients sets the recipients that should receive messages. You can add more recipients by calling AddRecipients.
+func WithRecipients(channelIDs ...string) Option {
+	return func(s *Service) {
+		s.channelIDs = channelIDs
+		s.logger.Debug().Int("count", len(channelIDs)).Int("total", len(s.channelIDs)).Msg("Recipients set")
+	}
+}
+
 // WithEscapeMessage sets whether messages should be escaped or not before sending.
 func WithEscapeMessage(escapeMessage bool) Option {
 	return func(s *Service) {
 		s.escapeMessage = escapeMessage
-		s.logger.Debug().Bool("escapeMessage", escapeMessage).Msg("Escape message set")
+		s.logger.Debug().Bool("escape-message", escapeMessage).Msg("Escape message set")
 	}
 }

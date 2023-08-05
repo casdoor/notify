@@ -11,11 +11,21 @@ import (
 	"github.com/nikoksr/notify/v2"
 )
 
+func (c *authClient) buildMessagePayload(conf *SendConfig) *discordgo.MessageSend {
+	// Convert notify.Attachment to discordgo.File.
+	files := attachmentsToFiles(conf.Attachments)
+
+	return &discordgo.MessageSend{
+		Content: conf.Message,
+		Files:   files,
+	}
+}
+
 func (c *authClient) sendTo(recipient string, conf *SendConfig) error {
 	c.logger.Debug().Str("recipient", recipient).Msg("Sending message and attachments to channel")
 
-	// Convert notify.Attachment to discordgo.File.
-	files := attachmentsToFiles(conf.Attachments)
+	// Build the message payload.
+	message := c.buildMessagePayload(conf)
 
 	// Quit early if dry run is enabled
 	if conf.DryRun {
@@ -24,11 +34,7 @@ func (c *authClient) sendTo(recipient string, conf *SendConfig) error {
 	}
 
 	// Send message and attachments.
-	_, err := c.session.ChannelMessageSendComplex(recipient, &discordgo.MessageSend{
-		Content: conf.Message,
-		Files:   files,
-	})
-	if err != nil {
+	if _, err := c.session.ChannelMessageSendComplex(recipient, message); err != nil {
 		return err
 	}
 
@@ -37,35 +43,55 @@ func (c *authClient) sendTo(recipient string, conf *SendConfig) error {
 	return nil
 }
 
-func (c *webhookClient) sendTo(recipient string, conf *SendConfig) error {
-	c.logger.Debug().Str("recipient", recipient).Msg("Sending message and attachments to webhook")
+func (c *webhookClient) buildWebhookPayload(conf *SendConfig) *discordgo.WebhookParams {
+	// Convert notify.Attachment to discordgo.File.
+	files := attachmentsToFiles(conf.Attachments)
 
+	return &discordgo.WebhookParams{
+		Content: conf.Message,
+		Files:   files,
+	}
+}
+
+func parseWebhookURL(recipient string) (webhookID, webhookToken string, err error) {
 	// Parse the recipient string as a webhook URL.
 	// The format is: https://discord.com/api/webhooks/<webhook_id>/<webhook_token>
 	u, err := url.Parse(recipient)
 	if err != nil {
-		return fmt.Errorf("invalid webhook URL: %w", err)
+		return "", "", fmt.Errorf("invalid webhook URL: %w", err)
 	}
 
 	// Validate the URL.
 	if u.Scheme != "https" || u.Host != "discord.com" || !strings.HasPrefix(u.Path, "/api/webhooks/") {
-		return fmt.Errorf("invalid webhook URL: %s", u.String())
+		return "", "", fmt.Errorf("invalid webhook URL: %s", u.String())
 	}
 
 	// Sanity check to avoid panics.
 	segments := strings.Split(u.Path, "/")
 	if len(segments) < 3 {
-		return fmt.Errorf("invalid webhook URL: %s", u.String())
+		return "", "", fmt.Errorf("invalid webhook URL: %s", u.String())
 	}
 
 	// Get the webhook ID and token from the URL.
 	// The webhook ID is the second to last path segment.
 	// The webhook token is the last path segment.
-	webhookID := segments[len(segments)-2]
-	webhookToken := segments[len(segments)-1]
+	webhookID = segments[len(segments)-2]
+	webhookToken = segments[len(segments)-1]
 
-	// Convert notify.Attachment to discordgo.File.
-	files := attachmentsToFiles(conf.Attachments)
+	return webhookID, webhookToken, nil
+}
+
+func (c *webhookClient) sendTo(recipient string, conf *SendConfig) error {
+	c.logger.Debug().Str("recipient", recipient).Msg("Sending message and attachments to webhook")
+
+	// Extract the webhook ID and token from the URL.
+	webhookID, webhookToken, err := parseWebhookURL(recipient)
+	if err != nil {
+		return fmt.Errorf("parse webhook URL: %w", err)
+	}
+
+	// Build the webhook payload.
+	message := c.buildWebhookPayload(conf)
 
 	// Quit early if dry run is enabled
 	if conf.DryRun {
@@ -74,10 +100,7 @@ func (c *webhookClient) sendTo(recipient string, conf *SendConfig) error {
 	}
 
 	// Execute the webhook
-	_, err = c.session.WebhookExecute(webhookID, webhookToken, false, &discordgo.WebhookParams{
-		Content: conf.Message,
-		Files:   files,
-	})
+	_, err = c.session.WebhookExecute(webhookID, webhookToken, false, message)
 	if err != nil {
 		return err
 	}
