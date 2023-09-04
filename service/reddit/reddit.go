@@ -44,7 +44,35 @@ func New(clientID, clientSecret, username, password string) (*Reddit, error) {
 			Password: password,
 		},
 		reddit.WithHTTPClient(&h),
-		reddit.WithUserAgent("github.com/nikoksr/notify"),
+		reddit.WithUserAgent("github.com/casdoor/notify"),
+	)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to instantiate base Reddit client")
+	}
+
+	r := &Reddit{
+		client:     rClient.Message,
+		recipients: []string{},
+	}
+
+	return r, nil
+}
+
+func NewWithHttpClient(clientID, clientSecret, username, password string, h *http.Client) (*Reddit, error) {
+	// Disable HTTP2 in http client
+	// Details: https://www.reddit.com/r/redditdev/comments/t8e8hc/getting_nothing_but_429_responses_when_using_go/i18yga2/
+	h.Transport = &http.Transport{
+		TLSNextProto: map[string]func(authority string, c *tls.Conn) http.RoundTripper{},
+	}
+	rClient, err := reddit.NewClient(
+		reddit.Credentials{
+			ID:       clientID,
+			Secret:   clientSecret,
+			Username: username,
+			Password: password,
+		},
+		reddit.WithHTTPClient(h),
+		reddit.WithUserAgent("github.com/casdoor/notify"),
 	)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to instantiate base Reddit client")

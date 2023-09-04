@@ -2,6 +2,7 @@ package discord
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/pkg/errors"
@@ -69,6 +70,12 @@ func parseBotToken(token string) string {
 // For more info, see here: https://pkg.go.dev/github.com/bwmarrin/discordgo@v0.22.1#New
 func parseOAuthToken(token string) string {
 	return "Bearer " + token
+}
+
+func (d *Discord) SetHttpClient(client *http.Client) {
+	if discordClient, ok := d.client.(*discordgo.Session); ok {
+		discordClient.Client = client
+	}
 }
 
 // AddReceivers takes Discord channel IDs and adds them to the internal channel ID list. The Send method will send
