@@ -2,7 +2,7 @@
 
 ## IMPORTANT
 
-### Broken state; see [#274](https://github.com/nikoksr/notify/issues/274)
+### Broken state; see [#274](https://github.com/casdoor/notify/issues/274)
 
 Since our previous WhatsApp client library was abandoned, we had to switch to a new one. Unfortunately, the new library
 is not yet ready for production use. We are working on a solution, but it will take some time.

@@ -45,7 +45,7 @@ mock:
 fmt:
 	@gofumpt -w -l .
 
-	@gci write --section Standard --section Default --section "Prefix(github.com/nikoksr/notify)" .
+	@gci write --section Standard --section Default --section "Prefix(github.com/casdoor/notify)" .
 .PHONY: fmt
 
 

@@ -1,6 +1,6 @@
 # Twilio (Message Service)
 
-[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/nikoksr/notify/service/twilio)
+[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/casdoor/notify/service/twilio)
 
 ## Prerequisites
 
@@ -18,8 +18,8 @@ import (
 	"context"
 	"log"
 
-	"github.com/nikoksr/notify"
-	"github.com/nikoksr/notify/service/twilio"
+	"github.com/casdoor/notify"
+	"github.com/casdoor/notify/service/twilio"
 )
 
 func main() {

@@ -8,7 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/nikoksr/notify/service/http"
+	"github.com/casdoor/notify/service/http"
 )
 
 //go:generate mockery --name=httpClient --output=. --case=underscore --inpackage

@@ -1,12 +1,12 @@
 # Firebase Cloud Messaging (FCM)
 
-[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/nikoksr/notify/service/fcm)
+[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/casdoor/notify/service/fcm)
 
 ## Prerequisites
 
 Navigate to Firebase [console](https://console.firebase.google.com/), login with your Google account and create a new project.
 You will find the `Server Key` in the project settings screen under `Cloud Messaging` tab. When the server is up and running
-you can add Firebase to your applications following the instructions in the `Engage/Cloud Messaging` section. 
+you can add Firebase to your applications following the instructions in the `Engage/Cloud Messaging` section.
 
 To test the integration with a device you can use [FCM toolbox](https://simonmarquis.github.io/FCM-toolbox). You can also download the app
 to your mobile, create a device token and test the reachability of your device.
@@ -20,8 +20,8 @@ import (
 	"context"
 	"log"
 
-	"github.com/nikoksr/notify"
-	"github.com/nikoksr/notify/service/fcm"
+	"github.com/casdoor/notify"
+	"github.com/casdoor/notify/service/fcm"
 )
 
 func main() {

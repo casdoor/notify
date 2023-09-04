@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-lark/lark"
 
-	"github.com/nikoksr/notify"
+	"github.com/casdoor/notify"
 )
 
 // CustomAppService is a Lark notify service using a Lark custom app.
