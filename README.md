@@ -5,11 +5,11 @@
     alt="notify logo"
 />
 
-[![codecov](https://codecov.io/gh/nikoksr/notify/branch/main/graph/badge.svg?token=QDON0KO2WV)](https://codecov.io/gh/nikoksr/notify)
-[![Go Report Card](https://goreportcard.com/badge/github.com/nikoksr/notify)](https://goreportcard.com/report/github.com/nikoksr/notify)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/37fdff3c275c4a72a3a061f2d0ec5553)](https://www.codacy.com/gh/nikoksr/notify/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=nikoksr/notify&amp;utm_campaign=Badge_Grade)
-[![Maintainability](https://api.codeclimate.com/v1/badges/b3afd7bf115341995077/maintainability)](https://codeclimate.com/github/nikoksr/notify/maintainability)
-[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/nikoksr/notify)
+[![codecov](https://codecov.io/gh/casdoor/notify/branch/main/graph/badge.svg?token=QDON0KO2WV)](https://codecov.io/gh/casdoor/notify)
+[![Go Report Card](https://goreportcard.com/badge/github.com/casdoor/notify)](https://goreportcard.com/report/github.com/casdoor/notify)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/37fdff3c275c4a72a3a061f2d0ec5553)](https://www.codacy.com/gh/casdoor/notify/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=casdoor/notify&amp;utm_campaign=Badge_Grade)
+[![Maintainability](https://api.codeclimate.com/v1/badges/b3afd7bf115341995077/maintainability)](https://codeclimate.com/github/casdoor/notify/maintainability)
+[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/casdoor/notify)
 
 </div>
 
@@ -32,7 +32,7 @@ Since Notify is highly dependent on the consistency of the supported external se
 ## Install <a id="install"></a>
 
 ```sh
-go get -u github.com/nikoksr/notify
+go get -u github.com/casdoor/notify
 ```
 
 ## Example usage <a id="usage"></a>
@@ -65,17 +65,17 @@ In this example, we use the global `Send()` function. Similar to most logging li
 libraries, we also recommend avoiding the use of global functions as much as possible. Instead, use one of our versatile
 constructor functions to create a new local `Notify` instance and pass it down the stream.
 
-Read the [library docs](https://pkg.go.dev/github.com/nikoksr/notify#section-documentation) for more information.
+Read the [library docs](https://pkg.go.dev/github.com/casdoor/notify#section-documentation) for more information.
 
 ## Contributing <a id="contributing"></a>
 
-Yes, please! Contributions of all kinds are very welcome! Feel free to check our [open issues](https://github.com/nikoksr/notify/issues). Please also take a look at the [contribution guidelines](https://github.com/nikoksr/notify/blob/main/CONTRIBUTING.md).
+Yes, please! Contributions of all kinds are very welcome! Feel free to check our [open issues](https://github.com/casdoor/notify/issues). Please also take a look at the [contribution guidelines](https://github.com/casdoor/notify/blob/main/CONTRIBUTING.md).
 
-> Psst, don't forget to check the list of [missing services](https://github.com/nikoksr/notify/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3Aaffects%2Fservices+label%3A%22help+wanted%22+no%3Aassignee) waiting to be added by you or create [a new issue](https://github.com/nikoksr/notify/issues/new?assignees=&labels=affects%2Fservices%2C+good+first+issue%2C+hacktoberfest%2C+help+wanted%2C+type%2Fenhancement%2C+up+for+grabs&template=service-request.md&title=feat%28service%29%3A+Add+%5BSERVICE+NAME%5D+service) if you want a new service to be added.
+> Psst, don't forget to check the list of [missing services](https://github.com/casdoor/notify/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3Aaffects%2Fservices+label%3A%22help+wanted%22+no%3Aassignee) waiting to be added by you or create [a new issue](https://github.com/casdoor/notify/issues/new?assignees=&labels=affects%2Fservices%2C+good+first+issue%2C+hacktoberfest%2C+help+wanted%2C+type%2Fenhancement%2C+up+for+grabs&template=service-request.md&title=feat%28service%29%3A+Add+%5BSERVICE+NAME%5D+service) if you want a new service to be added.
 
 ## Supported services <a id="supported_services"></a>
 
-> Click [here](https://github.com/nikoksr/notify/issues/new?assignees=&labels=affects%2Fservices%2C+good+first+issue%2C+hacktoberfest%2C+help+wanted%2C+type%2Fenhancement%2C+up+for+grabs&template=service-request.md&title=feat%28service%29%3A+Add+%5BSERVICE+NAME%5D+service) to request a missing service.
+> Click [here](https://github.com/casdoor/notify/issues/new?assignees=&labels=affects%2Fservices%2C+good+first+issue%2C+hacktoberfest%2C+help+wanted%2C+type%2Fenhancement%2C+up+for+grabs&template=service-request.md&title=feat%28service%29%3A+Add+%5BSERVICE+NAME%5D+service) to request a missing service.
 
 | Service                                                                           | Path                                     | Credits                                                                                         |       Status       |
 |-----------------------------------------------------------------------------------|------------------------------------------|-------------------------------------------------------------------------------------------------|:------------------:|

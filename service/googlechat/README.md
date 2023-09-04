@@ -1,6 +1,6 @@
 # Google Chat
 
-[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/nikoksr/notify/service/googlechat)
+[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/casdoor/notify/service/googlechat)
 
 ## Prerequisites
 
@@ -39,8 +39,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/nikoksr/notify"
-	"github.com/nikoksr/notify/service/googlechat"
+	"github.com/casdoor/notify"
+	"github.com/casdoor/notify/service/googlechat"
 	"google.golang.org/api/chat/v1"
 	"google.golang.org/api/option"
 )
@@ -49,8 +49,8 @@ func main() {
     ctx := context.Background()
 
     withCred := option.WithCredentialsFile("credentials.json")
-    withSpacesScope := option.WithScopes("https://www.googleapis.com/auth/chat.spaces") 
-    
+    withSpacesScope := option.WithScopes("https://www.googleapis.com/auth/chat.spaces")
+
     // In this example, we'll send a message to all spaces within the google workspace.
     // Start by using the google chat API to find the spaces within a workspace.
 
@@ -62,7 +62,7 @@ func main() {
     }
 
     // With the the list of spaces, loop over each space creating a receivers slice
-    // of all the space.Name's.     
+    // of all the space.Name's.
     receivers := make([]string, 0)
 
     for _, space := range spaces.Spaces {
@@ -74,7 +74,7 @@ func main() {
 
          receivers = append(receivers, name)
     }
-    
+
     msgSvc, err := googlechat.New(withCred)
 
     // alternatively, if you would like to pass a context

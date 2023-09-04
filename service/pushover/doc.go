@@ -9,8 +9,8 @@ Usage:
 	import (
 		"context"
 
-		"github.com/nikoksr/notify"
-		"github.com/nikoksr/notify/service/pushover"
+		"github.com/casdoor/notify"
+		"github.com/casdoor/notify/service/pushover"
 	)
 
 	func main() {

@@ -17,10 +17,10 @@ If you need to mock an interface in your tests, follow the next steps:
     }
     ```
 
-    > Remember to set the `--name` argument accordingly. For real-life implementation examples, check out existing services, for example [fcm](https://github.com/nikoksr/notify/blob/bda5705e4ee1cbf6b02bbb12679ed597334dee51/service/fcm/fcm.go#L27).
+    > Remember to set the `--name` argument accordingly. For real-life implementation examples, check out existing services, for example [fcm](https://github.com/casdoor/notify/blob/bda5705e4ee1cbf6b02bbb12679ed597334dee51/service/fcm/fcm.go#L27).
 
 
-2. Run `make mock` 
+2. Run `make mock`
 
     > The first time you'll also need to run `make setup` to download the packages required to generate your mocks
 

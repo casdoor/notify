@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/nikoksr/notify/service/mail"
+	"github.com/casdoor/notify/service/mail"
 )
 
 func TestNew(t *testing.T) {

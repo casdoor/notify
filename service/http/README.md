@@ -1,12 +1,12 @@
 # Generic HTTP service
 
-[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/nikoksr/notify/service/http)
+[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/casdoor/notify/service/http)
 
 ## Prerequisites
 
 Technically, you don't need any prerequisites to use this service. However, you will need an HTTP endpoint to send requests to.
 
-See our [Notify Test Server](https://github.com/nikoksr/notify-http-test) for a simple HTTP server that can be used for testing.
+See our [Notify Test Server](https://github.com/casdoor/notify-http-test) for a simple HTTP server that can be used for testing.
 
 ## Usage
 
@@ -18,8 +18,8 @@ import (
 	"log"
 	stdhttp "net/http"
 
-	"github.com/nikoksr/notify"
-	"github.com/nikoksr/notify/service/http"
+	"github.com/casdoor/notify"
+	"github.com/casdoor/notify/service/http"
 )
 
 func main() {
@@ -28,7 +28,7 @@ func main() {
 
 	//
 	// In the following example, we will send two requests to the same HTTP endpoint. This is meant to be used with
-	// Notify's test http server: https://github.com/nikoksr/notify-http-test. It supports multiple content-types on the
+	// Notify's test http server: https://github.com/casdoor/notify-http-test. It supports multiple content-types on the
 	// same endpoint, to simplify testing. All you have to do is run `go run main.go` in the test server's directory and
 	// this example will work.
 	// So the following example should send two requests to the same endpoint, one with content-type application/json and

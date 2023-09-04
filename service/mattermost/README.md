@@ -2,7 +2,7 @@
 
 Ensure that you have already navigated to your GOPATH and installed the following packages:
 
-* `go get -u github.com/nikoksr/notify`
+* `go get -u github.com/casdoor/notify`
 
 ## Steps for Mattermost Server
 
@@ -21,8 +21,8 @@ package main
 import (
     "os"
 
-    "github.com/nikoksr/notify"
-    "github.com/nikoksr/notify/service/mattermost"
+    "github.com/casdoor/notify"
+    "github.com/casdoor/notify/service/mattermost"
 )
 
 func main() {
