@@ -2,6 +2,7 @@ package twitter
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/dghubble/oauth1"
 	"github.com/drswork/go-twitter/twitter"
@@ -41,6 +42,34 @@ func New(credentials Credentials) (*Twitter, error) {
 	config := oauth1.NewConfig(credentials.ConsumerKey, credentials.ConsumerSecret)
 	token := oauth1.NewToken(credentials.AccessToken, credentials.AccessTokenSecret)
 	httpClient := config.Client(oauth1.NoContext, token)
+	client := twitter.NewClient(httpClient)
+
+	// Verify Credentials
+	verifyParams := &twitter.AccountVerifyParams{
+		SkipStatus:   twitter.Bool(true),
+		IncludeEmail: twitter.Bool(true),
+	}
+
+	// we can retrieve the user and verify if the credentials
+	// we have used successfully allow us to log in!
+	_, _, err := client.Accounts.VerifyCredentials(verifyParams)
+	if err != nil {
+		return nil, err
+	}
+
+	t := &Twitter{
+		client:     client,
+		twitterIDs: []string{},
+	}
+
+	return t, nil
+}
+
+func NewWithHttpClient(credentials Credentials, h *http.Client) (*Twitter, error) {
+	config := oauth1.NewConfig(credentials.ConsumerKey, credentials.ConsumerSecret)
+	token := oauth1.NewToken(credentials.AccessToken, credentials.AccessTokenSecret)
+	httpClient := config.Client(oauth1.NoContext, token)
+	httpClient.Transport = h.Transport
 	client := twitter.NewClient(httpClient)
 
 	// Verify Credentials

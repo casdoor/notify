@@ -3,6 +3,7 @@ package matrix
 import (
 	"context"
 	"errors"
+	"net/http"
 
 	matrix "maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/event"
@@ -37,6 +38,13 @@ func New(userID id.UserID, roomID id.RoomID, homeServer, accessToken string) (*M
 		},
 	}
 	return s, nil
+}
+
+func (s *Matrix) SetHttpClient(client *http.Client) {
+	if mClient, ok := s.client.(*matrix.Client); ok {
+		mClient.Client = client
+		s.client = mClient
+	}
 }
 
 // Send takes a message body and sends them to the previously set channel.

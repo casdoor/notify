@@ -2,6 +2,7 @@ package line
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/line/line-bot-sdk-go/linebot"
 	"github.com/pkg/errors"
@@ -18,6 +19,21 @@ type Line struct {
 // -> https://github.com/line/line-bot-sdk-go
 func New(channelSecret, channelAccessToken string) (*Line, error) {
 	bot, err := linebot.New(channelSecret, channelAccessToken)
+	if err != nil {
+		return nil, err
+	}
+
+	l := &Line{
+		client: bot,
+	}
+
+	return l, nil
+}
+
+// NewWithHttpClient creates a new instance of Line notifier service with linebot.ClientOption
+func NewWithHttpClient(channelSecret, channelAccessToken string, client *http.Client) (*Line, error) {
+	option := linebot.WithHTTPClient(client)
+	bot, err := linebot.New(channelSecret, channelAccessToken, option)
 	if err != nil {
 		return nil, err
 	}
