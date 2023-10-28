@@ -4,10 +4,10 @@ import (
 	context "context"
 	"testing"
 
+	"github.com/casdoor/go-reddit/v2/reddit"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"github.com/casdoor/go-reddit/v2/reddit"
 )
 
 func TestReddit_New(t *testing.T) {

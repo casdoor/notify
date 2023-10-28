@@ -6,8 +6,8 @@ import (
 	"crypto/tls"
 	"net/http"
 
-	"github.com/pkg/errors"
 	"github.com/casdoor/go-reddit/v2/reddit"
+	"github.com/pkg/errors"
 )
 
 //go:generate mockery --name=redditMessageClient --output=. --case=underscore --inpackage
