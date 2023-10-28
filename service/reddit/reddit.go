@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/pkg/errors"
-	"github.com/vartanbeno/go-reddit/v2/reddit"
+	"github.com/casdoor/go-reddit/v2/reddit"
 )
 
 //go:generate mockery --name=redditMessageClient --output=. --case=underscore --inpackage
