@@ -1,6 +1,6 @@
 # CuCloud
 
-[Cu Cloud](https://www.cucloud.cn) is the cloud service brand of China Unicom
+[CUCloud](https://www.cucloud.cn) is the cloud service brand of China Unicom
 
 ## Usage
 

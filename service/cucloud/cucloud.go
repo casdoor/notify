@@ -1,3 +1,17 @@
+// Copyright 2025 The Casdoor Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package cucloud
 
 import (
@@ -67,14 +81,20 @@ func (c *CuCloud) Send(ctx context.Context, subject, content string) error {
 	reqBody["templateName"] = ""
 	reqBody["cloudRegionCode"] = "cn-langfang-2"
 
-	signVal := c.generateRequestSign(reqHeader, reqBody)
+	signVal, err := c.generateRequestSign(reqHeader, reqBody)
+	if err != nil {
+		return err
+	}
 	reqHeader["sign"] = signVal
 	reqHeader["Content-Type"] = "application/json"
 	reqHeader["Account-Id"] = c.AccountId
 	reqHeader["User-Id"] = c.AccountId
 	reqHeader["Region-Code"] = c.CloudRegionCode
 
-	bodyJson, _ := json.Marshal(reqBody)
+	bodyJson, err := json.Marshal(reqBody)
+	if err != nil {
+		return err
+	}
 	req, err := http.NewRequest("POST", "https://gateway.cucloud.cn/smn/SMNService/api/message/notify", bytes.NewReader(bodyJson))
 	if err != nil {
 		return err
@@ -111,7 +131,7 @@ func (c *CuCloud) Send(ctx context.Context, subject, content string) error {
 	return nil
 }
 
-func (c *CuCloud) generateRequestSign(header map[string]string, body map[string]string) string {
+func (c *CuCloud) generateRequestSign(header map[string]string, body map[string]string) (string, error) {
 	mac := hmac.New(sha256.New, []byte(c.SecretKey))
 	reqSignMap := make(map[string]string)
 	maps.Copy(reqSignMap, header)
@@ -128,12 +148,12 @@ func (c *CuCloud) generateRequestSign(header map[string]string, body map[string]
 	for _, k := range keys {
 		vJson, err := json.Marshal(reqSignMap[k])
 		if err != nil {
-			panic(err)
+			return "", err
 		}
 		signRawString += k + "=" + string(vJson) + "&"
 	}
 
 	signRawString = signRawString[:len(signRawString)-1]
 	mac.Write([]byte(signRawString))
-	return hex.EncodeToString(mac.Sum(nil))
+	return hex.EncodeToString(mac.Sum(nil)), nil
 }
