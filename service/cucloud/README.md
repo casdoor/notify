@@ -12,7 +12,7 @@
 accessKey := ""
 secretKey := ""
 
-// create client
+// create cucloud client
 cuCloudClient := New(accessKey, secretKey, "topic_name", "message title", "cloud region code", "account id", "notify type")
 
 // send message
