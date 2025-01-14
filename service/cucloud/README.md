@@ -8,7 +8,7 @@
 2. Create a topic
 
 ```go
-// define accessKey and  accessKeySecret
+// define accessKey and accessKeySecret
 accessKey := ""
 secretKey := ""
 
