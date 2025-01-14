@@ -9,12 +9,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"maps"
 	"net/http"
 	"net/url"
 	"sort"
 	"strconv"
 	"time"
+
+	"golang.org/x/exp/maps"
 )
 
 type CuCloud struct {
