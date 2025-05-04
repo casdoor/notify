@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/RocketChat/Rocket.Chat.Go.SDK v0.0.0-20221121042443-a3fd332d56d9
 	github.com/antihax/optional v1.0.0 // indirect
-	github.com/atc0005/go-teams-notify/v2 v2.6.1
+	github.com/atc0005/go-teams-notify/v2 v2.13.0
 	github.com/aws/aws-sdk-go-v2 v1.21.0
 	github.com/aws/aws-sdk-go-v2/config v1.18.30
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.36
@@ -23,7 +23,7 @@ require (
 	github.com/sendgrid/sendgrid-go v3.13.0+incompatible
 	github.com/silenceper/wechat/v2 v2.1.5
 	github.com/slack-go/slack v0.12.3
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/textmagic/textmagic-rest-go-v2/v2 v2.0.4420
 	github.com/utahta/go-linenotify v0.5.0
 	golang.org/x/sync v0.3.0
@@ -44,6 +44,7 @@ require github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 require (
 	github.com/casdoor/go-reddit/v2 v2.1.0
 	github.com/jordan-wright/email v4.0.1-0.20210109023952-943e75fe5223+incompatible
+	golang.org/x/exp v0.0.0-20230810033253-352e893a4cad
 	google.golang.org/api v0.138.0
 )
 
@@ -63,7 +64,6 @@ require (
 	github.com/rs/zerolog v1.30.0 // indirect
 	go.mau.fi/util v0.0.0-20230805171708-199bf3eec776 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	golang.org/x/exp v0.0.0-20230810033253-352e893a4cad // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230807174057-1744710a1577 // indirect
 	google.golang.org/grpc v1.57.0 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0 // indirect
@@ -106,7 +106,7 @@ require (
 	github.com/sendgrid/rest v2.6.9+incompatible // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
-	github.com/stretchr/objx v0.5.0 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
 	github.com/tidwall/gjson v1.16.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
